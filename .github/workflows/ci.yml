@@ -98,7 +98,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run secrets:setup
-      - name: Build and start services
+      - name: Start postgres service for migrations
+        run: docker compose -f infra/docker-compose.yml up -d postgres
+      - name: Run DB migrations
+        run: docker compose -f infra/docker-compose.yml run --rm migrate
+      - name: Build and start remaining services
         run: docker compose -f infra/docker-compose.yml up -d --build
         env:
           DOCKER_BUILDKIT: 1
@@ -119,10 +123,10 @@ jobs:
       - run: CV_FORBIDDEN_MARKER=CI-SMOKE-PLAINTEXT-NEVER-SENT npm run verify:plaintext-negative
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - if: always()
-        run: docker compose -f infra/docker-compose.yml down -v
       - if: failure()
         run: docker compose -f infra/docker-compose.yml logs --no-color
+      - if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
       - name: Generate API SBOM
         if: success()
         uses: anchore/sbom-action@v0.17.9
@@ -140,7 +144,11 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run secrets:setup
-      - name: Build and start services
+      - name: Start postgres service for migrations
+        run: docker compose -f infra/docker-compose.yml up -d postgres
+      - name: Run DB migrations
+        run: docker compose -f infra/docker-compose.yml run --rm migrate
+      - name: Build and start remaining services
         run: docker compose -f infra/docker-compose.yml up -d --build
         env:
           DOCKER_BUILDKIT: 1
