@@ -69,12 +69,20 @@ jobs:
           load: true
           tags: ciphervault-worker:ci
       - name: Scan API image
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          scan-type: 'image'
+          scan-type: image
           image-ref: ciphervault-api:ci
           severity: CRITICAL,HIGH
-          exit-code: 1
+          exit-code: '1'
+          ignore-unfixed: true
+      - name: Scan worker image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ciphervault-worker:ci
+          severity: CRITICAL,HIGH
+          exit-code: '1'
           ignore-unfixed: true
 
   compose-smoke:
@@ -97,14 +105,6 @@ jobs:
       - run: npm run test:e2e
       - if: always()
         run: docker compose -f infra/docker-compose.yml down -v
-      - name: Scan worker image
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          scan-type: 'image'
-          image-ref: ciphervault-worker:ci
-          severity: CRITICAL,HIGH
-          exit-code: 1
-          ignore-unfixed: true
       - name: Generate API SBOM
         uses: anchore/sbom-action@v0.17.9
         with:
@@ -122,18 +122,19 @@ jobs:
       - run: npm ci
       - run: npm run secrets:setup
       - run: docker compose -f infra/docker-compose.yml up -d --build
-      - run: npm run test:compose
       - name: Wait for service readiness
         run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080 > /dev/null 2>&1; then
               echo "Service is ready"
               exit 0
             fi
-            sleep 2
+            echo "Waiting... attempt $i"
+            sleep 3
           done
           echo "Service readiness timed out"
           exit 1
+      - run: npm run test:compose
       - name: ZAP baseline
         uses: zaproxy/action-baseline@v0.14.0
         with:
@@ -142,3 +143,5 @@ jobs:
       - name: Compose logs on failure
         if: failure()
         run: docker compose -f infra/docker-compose.yml logs --no-color
+      - if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
