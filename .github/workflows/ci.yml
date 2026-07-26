@@ -99,7 +99,7 @@ jobs:
       - run: npm ci
       - run: npm run secrets:setup
       - name: Start postgres service for migrations
-        run: docker compose -f infra/docker-compose.yml up -d postgres
+        run: docker compose -f infra/docker-compose.yml up -d --wait postgres
       - name: Run DB migrations
         run: docker compose -f infra/docker-compose.yml run --rm migrate
       - name: Build and start remaining services
@@ -145,7 +145,7 @@ jobs:
       - run: npm ci
       - run: npm run secrets:setup
       - name: Start postgres service for migrations
-        run: docker compose -f infra/docker-compose.yml up -d postgres
+        run: docker compose -f infra/docker-compose.yml up -d --wait postgres
       - name: Run DB migrations
         run: docker compose -f infra/docker-compose.yml run --rm migrate
       - name: Build and start remaining services

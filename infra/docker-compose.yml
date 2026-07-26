@@ -132,10 +132,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ciphervault -d ciphervault"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ciphervault -d ciphervault && psql -U ciphervault -d ciphervault -c 'SELECT 1'"]
+      interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 10s
 
   valkey:
     image: valkey/valkey:8-alpine
