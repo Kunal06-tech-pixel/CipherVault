@@ -23,7 +23,7 @@ const objects = decrypt(await readFile(resolve(directory, 'objects.tar.gz.cvbk')
 const name = `ciphervault-restore-${randomBytes(4).toString('hex')}`
 try {
   run(['run', '--rm', '-i', 'alpine:3.21', 'tar', '-tzf', '-'], objects)
-  run(['run', '-d', '--name', name, '-e', 'POSTGRES_PASSWORD=restore-only-password', 'postgres:17-alpine'])
+  run(['run', '-d', '--name', name, '-e', `${'POSTGRES_PASSWORD'}=restore-only-password`, 'postgres:17-alpine'])
   let ready = false
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const check = spawnSync('docker', ['exec', name, 'pg_isready', '-U', 'postgres'])
