@@ -1,0 +1,2 @@
+10049	IGNORE	(Intentional no-store policy for encrypted vault UI and static assets in CI)
+10109	IGNORE	(Single-page application classification; not a vulnerability)
