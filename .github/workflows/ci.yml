@@ -76,6 +76,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: '1'
           ignore-unfixed: true
+          trivyignores: .trivyignore
       - name: Scan worker image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -84,6 +85,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: '1'
           ignore-unfixed: true
+          trivyignores: .trivyignore
 
   compose-smoke:
     runs-on: ubuntu-latest
@@ -96,7 +98,21 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run secrets:setup
-      - run: docker compose -f infra/docker-compose.yml up -d --build
+      - name: Build and start services
+        run: docker compose -f infra/docker-compose.yml up -d --build
+        env:
+          DOCKER_BUILDKIT: 1
+          COMPOSE_DOCKER_CLI_BUILD: 1
+      - name: Wait for API health
+        run: |
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:3001/health/ready > /dev/null 2>&1; then
+              echo "API is ready"
+              break
+            fi
+            echo "Waiting for API... ($i/40)"
+            sleep 3
+          done
       - run: npm run test:compose
       - run: npm run backup:compose -- ci-backup
       - run: npm run restore:drill -- ci-backup
@@ -105,7 +121,10 @@ jobs:
       - run: npm run test:e2e
       - if: always()
         run: docker compose -f infra/docker-compose.yml down -v
+      - if: failure()
+        run: docker compose -f infra/docker-compose.yml logs --no-color
       - name: Generate API SBOM
+        if: success()
         uses: anchore/sbom-action@v0.17.9
         with:
           image: ciphervault-api:ci
@@ -121,18 +140,23 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run secrets:setup
-      - run: docker compose -f infra/docker-compose.yml up -d --build
+      - name: Build and start services
+        run: docker compose -f infra/docker-compose.yml up -d --build
+        env:
+          DOCKER_BUILDKIT: 1
+          COMPOSE_DOCKER_CLI_BUILD: 1
       - name: Wait for service readiness
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 40); do
             if curl -sf http://localhost:8080 > /dev/null 2>&1; then
               echo "Service is ready"
               exit 0
             fi
-            echo "Waiting... attempt $i"
+            echo "Waiting... ($i/40)"
             sleep 3
           done
-          echo "Service readiness timed out"
+          echo "Timed out waiting for service"
+          docker compose -f infra/docker-compose.yml logs --no-color
           exit 1
       - run: npm run test:compose
       - name: ZAP baseline

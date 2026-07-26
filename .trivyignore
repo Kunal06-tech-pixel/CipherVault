@@ -1,0 +1,5 @@
+# Trivy ignore file for known accepted vulnerabilities
+# Format: CVE-YYYY-XXXXX  # reason
+
+# Low-severity esbuild dev-only vuln in tsup (not present in production images)
+# This is a dev dependency only used for building, not in runtime images
