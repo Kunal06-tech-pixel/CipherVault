@@ -16,7 +16,7 @@ test.describe('CipherVault production web shell', () => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Create account' }).click()
     await page.getByLabel('Email address').fill('playwright@example.invalid')
-    await page.getByLabel('Master password').fill('a-secure-test-password-123')
+    await page.getByLabel('Master password', { exact: true }).fill('a-secure-test-password-123')
     await page.getByLabel('Confirm master password').fill('different-password-123')
     await expect(page.getByRole('button', { name: /create zero-knowledge account/i })).toBeDisabled()
   })
