@@ -3,7 +3,7 @@ import type { VaultItem } from '@ciphervault/contracts'
 import { passwordHealth } from './health'
 
 const item = (id: string, password: string): VaultItem => ({
-  id, type: 'login', name: id, favorite: false, tags: [], archived: false,
+  id, schemaVersion: 2, type: 'login', name: id, category: 'Personal', favorite: false, tags: [], archived: false,
   createdAt: new Date(0).toISOString(), updatedAt: new Date(0).toISOString(), fields: { password },
 })
 

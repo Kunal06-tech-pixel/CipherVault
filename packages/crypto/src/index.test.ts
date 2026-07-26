@@ -36,7 +36,7 @@ describe('CipherVault v2 cryptography', () => {
     expect(unwrapped).toEqual(vaultKey)
 
     const item: VaultItem = {
-      id: randomUUID(), type: 'login', name: 'Private service', favorite: false, tags: [], archived: false,
+      id: randomUUID(), schemaVersion: 2, type: 'login', name: 'Private service', category: 'Personal', favorite: false, tags: [], archived: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), fields: { password: 'never-store-me' },
     }
     const encrypted = await encryptItem(item, vaultKey)
@@ -47,7 +47,7 @@ describe('CipherVault v2 cryptography', () => {
   it('rejects item tampering', async () => {
     const vaultKey = randomBytes(32)
     const item: VaultItem = {
-      id: randomUUID(), type: 'secureNote', name: 'Note', favorite: false, tags: [], archived: false,
+      id: randomUUID(), schemaVersion: 2, type: 'secure_note', name: 'Note', category: 'Personal', favorite: false, tags: [], archived: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), fields: { note: 'classified' },
     }
     const encrypted = await encryptItem(item, vaultKey)

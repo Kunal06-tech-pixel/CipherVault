@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Archive, Clipboard, CreditCard, Download, FileText, Fingerprint, Heart, IdCard, KeyRound,
+  Archive, Download, Heart, KeyRound,
   LayoutDashboard, LockKeyhole, LogOut, Menu, MoreHorizontal, Plus, RefreshCw, Search,
-  Paperclip, Settings, ShieldCheck, Sparkles, Star, Trash2, Upload, X,
+  Settings, ShieldCheck, Star, Upload, X,
 } from 'lucide-react'
-import type { EncryptedItem, SyncMutation, VaultItem } from '@ciphervault/contracts'
+import type { EncryptedItem, SyncMutation, VaultItem, VaultItemType } from '@ciphervault/contracts'
 import { approveExtensionGrant, createExtensionGrant, deleteAccount, deleteAttachment as deleteRemoteAttachment, fetchChanges, passwordRange, prelogin, pushMutations, reauthenticate } from '../../api'
 import { vaultCrypto } from '../../crypto-client'
 import { readableError } from '../../errors'
@@ -13,15 +13,18 @@ import { passwordHealth } from '../../health'
 import { cacheEncryptedItems, getCursor, readEncryptedItems, setCursor } from '../../offline'
 import { Logo } from '../../ui/Logo'
 import { SettingsDialog } from '../settings/SettingsDialog'
-import { TotpCode } from '../totp/TotpCode'
 import { parseVaultImport } from '../import-export/vault-import'
 import { downloadEncryptedAttachment, uploadEncryptedAttachment } from '../attachments/attachment-service'
 import { compromisedPasswordCount } from '../password-health/compromised'
 import { ItemEditor } from './ItemEditor'
-import { typeIcons, typeLabels } from './item-types'
+import { dashboardTypeOrder, typeIcons, typeLabels } from './item-types'
 import { VaultDashboard } from './VaultDashboard'
+import { normalizeVaultItem } from './vault-item-normalize'
+import { searchableValues, safeSubtitle } from './vault-item-validation'
+import { ReauthenticationDialog } from './ReauthenticationDialog'
+import { VaultItemDetails } from './VaultItemDetails'
 
-type View = 'all' | 'favorites' | 'login' | 'secureNote' | 'card' | 'identity' | 'totp' | 'archive' | 'health'
+export type View = 'all' | 'favorites' | VaultItemType | 'archive' | 'health' | 'recent'
 
 export function VaultScreen({ email, onLock }: { email: string; onLock: () => void }) {
   const [items, setItems] = useState<VaultItem[]>([])
@@ -35,13 +38,14 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   const [message, setMessage] = useState('Synchronizing encrypted vault...')
   const [compromised, setCompromised] = useState<number | null>(null)
   const [checkingCompromised, setCheckingCompromised] = useState(false)
+  const [reauthRequest, setReauthRequest] = useState<{ reason: string; action: () => void } | null>(null)
   const timer = useRef<number | undefined>(undefined)
   const importInput = useRef<HTMLInputElement | null>(null)
   const attachmentInput = useRef<HTMLInputElement | null>(null)
 
   const decryptAll = useCallback(async (records: EncryptedItem[]) => {
     const live = records.filter((item) => !item.deletedAt)
-    const decrypted = await Promise.all(live.map((item) => vaultCrypto.decrypt(item)))
+    const decrypted = (await Promise.all(live.map((item) => vaultCrypto.decrypt(item)))).map((item) => normalizeVaultItem(item))
     setItems(decrypted)
   }, [])
 
@@ -109,16 +113,20 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   const filtered = useMemo(() => items.filter((item) => {
     if (view === 'favorites' && !item.favorite) return false
     if (view === 'archive' && !item.archived) return false
-    if (!['all', 'favorites', 'archive', 'health'].includes(view) && item.type !== view) return false
+    if (!['all', 'favorites', 'archive', 'health', 'recent'].includes(view) && item.type !== view) return false
     if (view !== 'archive' && item.archived) return false
     const search = query.toLowerCase()
-    return !search || [item.name, ...item.tags, ...Object.values(item.fields).map(String)]
+    return !search || searchableValues(item)
       .some((value) => value.toLowerCase().includes(search))
+  }).sort((left, right) => {
+    if (view === 'recent') return Date.parse(right.updatedAt) - Date.parse(left.updatedAt)
+    return left.name.localeCompare(right.name)
   }), [items, query, view])
 
   const save = async (item: VaultItem) => {
+    const normalizedItem = normalizeVaultItem(item)
     const current = encrypted.find((value) => value.id === item.id)
-    const record = await vaultCrypto.encrypt(item, current?.revision ?? 0)
+    const record = await vaultCrypto.encrypt(normalizedItem, current?.revision ?? 0)
     const mutation: SyncMutation = {
       itemId: item.id,
       baseRevision: current?.revision ?? 0,
@@ -139,11 +147,11 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
       if (!stored) throw new Error('The server did not accept the item.')
       const next = [...encrypted.filter((value) => value.id !== item.id), stored]
       setEncrypted(next)
-      setItems((currentItems) => [...currentItems.filter((value) => value.id !== item.id), item])
+      setItems((currentItems) => [...currentItems.filter((value) => value.id !== item.id), normalizedItem])
       await cacheEncryptedItems(next)
       await setCursor(result.cursor)
       setEditing(undefined)
-      setSelected(item)
+      setSelected(normalizedItem)
       setMessage('Encrypted and synchronized')
       return true
     } catch (cause) {
@@ -155,6 +163,12 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   const remove = async (item: VaultItem) => {
     const current = encrypted.find((value) => value.id === item.id)
     if (!current || !confirm(`Move "${item.name}" to trash?`)) return
+    requireReauthentication('Deleting a vault item requires recent reauthentication.', () => {
+      void removeAfterReauth(item, current)
+    })
+  }
+
+  const removeAfterReauth = async (item: VaultItem, current: EncryptedItem) => {
     try {
       const result = await pushMutations([{ itemId: item.id, baseRevision: current.revision, tombstone: true }])
       if (result.conflicts.length) {
@@ -210,6 +224,24 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
     const derived = await vaultCrypto.deriveAuth(masterPassword, challenge.salt, challenge.kdf)
     await reauthenticate(derived.authKey)
   }
+  const requireReauthentication = (reason: string, action: () => void) => setReauthRequest({ reason, action })
+  const confirmReauthentication = async (masterPassword: string) => {
+    await reauthenticateForSettings(masterPassword)
+    const action = reauthRequest?.action
+    setReauthRequest(null)
+    action?.()
+  }
+  const copyValue = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setMessage('Value copied to clipboard')
+      window.setTimeout(() => {
+        navigator.clipboard.writeText('').catch(() => undefined)
+      }, 30_000)
+    } catch {
+      setMessage('Clipboard access was blocked')
+    }
+  }
 
   const importVault = async (file: File) => {
     setMessage('Validating import locally...')
@@ -218,8 +250,9 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
       const mutations: SyncMutation[] = []
       const plaintextItems: VaultItem[] = []
       if (imported.kind === 'plaintext') {
-        plaintextItems.push(...imported.items)
-        for (const item of imported.items) {
+        const normalized = imported.items.map((item) => normalizeVaultItem(item))
+        plaintextItems.push(...normalized)
+        for (const item of normalized) {
           const record = await vaultCrypto.encrypt(item, 0)
           mutations.push({
             itemId: item.id,
@@ -332,22 +365,33 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   const health = useMemo(() => passwordHealth(items), [items])
   const navigation: Array<{ id: View; label: string; icon: typeof KeyRound }> = [
     { id: 'all', label: 'All items', icon: LayoutDashboard }, { id: 'favorites', label: 'Favorites', icon: Heart },
-    { id: 'login', label: 'Logins', icon: KeyRound }, { id: 'secureNote', label: 'Secure notes', icon: FileText },
-    { id: 'card', label: 'Cards', icon: CreditCard }, { id: 'identity', label: 'Identities', icon: IdCard },
-    { id: 'totp', label: 'Authenticator', icon: Fingerprint }, { id: 'archive', label: 'Archive', icon: Archive },
-    { id: 'health', label: 'Password health', icon: ShieldCheck },
+    ...dashboardTypeOrder.map((id) => ({ id, label: typeLabels[id], icon: typeIcons[id] })),
+    { id: 'recent', label: 'Recently updated', icon: RefreshCw },
+    { id: 'archive', label: 'Archive', icon: Archive },
+    { id: 'health', label: 'Login health', icon: ShieldCheck },
   ]
 
-  return <div className="app-shell production-shell"><header className="topbar"><button className="mobile-menu" onClick={() => setSidebar(true)}><Menu size={20} /></button><Logo /><div className="top-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search decrypted items on this device..." /></div><div className="top-actions"><button className="generator-button" onClick={() => setEditing(null)}><Sparkles size={16} /> New item</button><button className="icon-button" onClick={() => setSettings(true)}><Settings size={18} /></button><button className="lock-button" onClick={onLock}><LockKeyhole size={16} /><span>Lock</span></button></div></header>
-    <div className="workspace">{sidebar && <button className="sidebar-scrim" onClick={() => setSidebar(false)} />}<aside className={`sidebar ${sidebar ? 'open' : ''}`}><div className="mobile-sidebar-head"><Logo light /><button className="icon-button" onClick={() => setSidebar(false)}><X size={18} /></button></div><button className="add-button" onClick={() => { setEditing(null); setSidebar(false) }}><Plus size={17} /> Add vault item</button><nav><p className="nav-label">Your vault</p>{navigation.map(({ id, label, icon: Icon }, index) => <button key={id} className={view === id ? 'active' : ''} onClick={() => { setView(id); setSidebar(false); setSelected(null) }}><Icon size={17} />{label}{index < 7 && <span>{id === 'all' ? items.length : id === 'favorites' ? items.filter((item) => item.favorite).length : items.filter((item) => item.type === id).length}</span>}</button>)}</nav><div className="sidebar-security"><ShieldCheck size={17} /><div><b>Zero-knowledge vault</b><small>{email}</small></div><i /></div><button className="sidebar-lock" onClick={onLock}><LogOut size={16} /> Lock & sign out</button></aside>
+  const countFor = (id: View) => {
+    if (id === 'all') return items.filter((item) => !item.archived).length
+    if (id === 'favorites') return items.filter((item) => item.favorite && !item.archived).length
+    if (id === 'archive') return items.filter((item) => item.archived).length
+    if (id === 'recent') return items.filter((item) => !item.archived).length
+    if (id === 'health') return health.total
+    return items.filter((item) => item.type === id && !item.archived).length
+  }
+
+  return <div className="app-shell production-shell"><header className="topbar"><button className="mobile-menu" onClick={() => setSidebar(true)}><Menu size={20} /></button><Logo /><div className="top-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search decrypted items on this device..." /></div><div className="top-actions"><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> New item</button><button className="icon-button" onClick={() => setSettings(true)}><Settings size={18} /></button><button className="lock-button" onClick={onLock}><LockKeyhole size={16} /><span>Lock</span></button></div></header>
+    <div className="workspace">{sidebar && <button className="sidebar-scrim" onClick={() => setSidebar(false)} />}<aside className={`sidebar ${sidebar ? 'open' : ''}`}><div className="mobile-sidebar-head"><Logo light /><button className="icon-button" onClick={() => setSidebar(false)}><X size={18} /></button></div><button className="add-button" onClick={() => { setEditing(null); setSidebar(false) }}><Plus size={17} /> Add secure item</button><nav><p className="nav-label">Your vault</p>{navigation.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'active' : ''} onClick={() => { setView(id); setSidebar(false); setSelected(null) }}><Icon size={17} />{label}<span>{countFor(id)}</span></button>)}</nav><div className="sidebar-security"><ShieldCheck size={17} /><div><b>Encrypted vault</b><small>{email}</small></div><i /></div><button className="sidebar-lock" onClick={onLock}><LogOut size={16} /> Lock & sign out</button></aside>
       <main className="vault-main"><div className="vault-heading"><div><p className="eyebrow">Encrypted personal vault</p><h1>{navigation.find((item) => item.id === view)?.label}</h1><p>{message}</p></div><div className="heading-actions"><input ref={importInput} className="visually-hidden" type="file" accept=".csv,.json,application/json,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importVault(file) }} /><button className="secondary-button" onClick={() => importInput.current?.click()}><Upload size={15} /> Import</button><button className="secondary-button" onClick={exportEncrypted}><Download size={15} /> Backup</button><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> Add item</button></div></div>
         {view === 'all' && <VaultDashboard items={items} health={health} compromised={compromised} loading={message.startsWith('Synchronizing')} onSelect={setSelected} onNavigate={(next) => { setView(next); setSelected(null) }} onToggleFavorite={(item) => void save({ ...item, favorite: !item.favorite, updatedAt: new Date().toISOString() })} />}
-        {view === 'health' ? <section className="health-grid"><article><span className="health-icon safe"><ShieldCheck /></span><b>{health.total - health.weak}</b><p>Strong passwords</p></article><article><span className="health-icon warning"><KeyRound /></span><b>{health.weak}</b><p>Weak passwords</p></article><article><span className="health-icon danger"><RefreshCw /></span><b>{health.reused}</b><p>Reused passwords</p></article><article><span className="health-icon danger"><ShieldCheck /></span><b>{compromised ?? '-'}</b><p>Compromised passwords</p></article><div className="health-note"><ShieldCheck size={20} /><div><b>Health checks happen locally</b><p>Passwords are analyzed in memory. Compromised checks are opt-in and send only k-anonymous hash prefixes.</p><button className="secondary-button" disabled={checkingCompromised} onClick={() => void checkCompromisedPasswords()}>{checkingCompromised ? 'Checking anonymous ranges...' : 'Check compromised passwords'}</button></div></div></section> : <section className="vault-list production-list">{filtered.length ? <>{filtered.map((item) => { const Icon = typeIcons[item.type]; const username = String(item.fields.username ?? item.fields.email ?? item.fields.issuer ?? typeLabels[item.type]); return <button className={`production-row ${selected?.id === item.id ? 'selected' : ''}`} key={item.id} onClick={() => setSelected(item)}><span className="site-avatar"><Icon size={18} /></span><span className="entry-primary"><b>{item.name}</b><small>{username}</small></span><span className="item-tags">{item.tags.slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</span><span className="item-type">{typeLabels[item.type]}</span><Star className={item.favorite ? 'favorite-star' : ''} size={17} fill={item.favorite ? 'currentColor' : 'none'} /><MoreHorizontal size={17} /></button> })}</> : <div className="empty-state"><span><KeyRound size={29} /></span><h2>Your encrypted vault is ready</h2><p>Add a login, note, card, identity, or authenticator secret. It is encrypted before synchronization.</p><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> Add first item</button></div>}</section>}
+        {view === 'health' ? <section className="health-grid"><article><span className="health-icon safe"><ShieldCheck /></span><b>{health.total - health.weak}</b><p>Strong login passwords</p></article><article><span className="health-icon warning"><KeyRound /></span><b>{health.weak}</b><p>Weak login passwords</p></article><article><span className="health-icon danger"><RefreshCw /></span><b>{health.reused}</b><p>Reused login passwords</p></article><article><span className="health-icon danger"><ShieldCheck /></span><b>{compromised ?? '-'}</b><p>Compromised logins</p></article><div className="health-note"><ShieldCheck size={20} /><div><b>Login health checks happen locally</b><p>Passwords are analyzed in memory. Compromised checks are opt-in and send only k-anonymous hash prefixes.</p><button className="secondary-button" disabled={checkingCompromised} onClick={() => void checkCompromisedPasswords()}>{checkingCompromised ? 'Checking anonymous ranges...' : 'Check compromised logins'}</button></div></div></section> : <section id="complete-vault-list" className="vault-list production-list">{filtered.length ? <>{filtered.map((item) => { const Icon = typeIcons[item.type]; return <button className={`production-row ${selected?.id === item.id ? 'selected' : ''}`} key={item.id} onClick={() => setSelected(item)}><span className="site-avatar"><Icon size={18} /></span><span className="entry-primary"><b>{item.name}</b><small>{safeSubtitle(item)}</small></span><span className="item-tags">{[item.category, ...item.tags].slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</span><span className="item-type">{typeLabels[item.type]}</span><Star className={item.favorite ? 'favorite-star' : ''} size={17} fill={item.favorite ? 'currentColor' : 'none'} /><MoreHorizontal size={17} /></button> })}</> : <div className="empty-state"><span><KeyRound size={29} /></span><h2>Your encrypted vault is ready</h2><p>Add a secure item. It is encrypted before synchronization.</p><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> Add first item</button></div>}</section>}
         <footer className="vault-footer"><span><ShieldCheck size={14} /> End-to-end encrypted</span><span>Server stores ciphertext only</span></footer>
       </main>
-      {selected && <aside className="detail-panel production-detail"><div className="detail-top"><button className="icon-button" onClick={() => setSelected(null)}><X size={18} /></button><div><button className="icon-button" onClick={() => setEditing(selected)}><Settings size={16} /></button><button className="icon-button danger-icon" onClick={() => void remove(selected)}><Trash2 size={16} /></button></div></div><div className="detail-identity"><span className="detail-avatar">{(() => { const Icon = typeIcons[selected.type]; return <Icon size={27} /> })()}</span><h2>{selected.name}</h2><p>{typeLabels[selected.type]}</p></div>{selected.type === 'totp' && Boolean(selected.fields.secret) && <TotpCode secret={String(selected.fields.secret)} />}<div className="detail-fields">{Object.entries(selected.fields).filter(([, value]) => value).map(([key, value]) => <div className="detail-field" key={key}><span>{key.replace(/([A-Z])/g, ' $1')}</span><div><b className={key === 'password' || key === 'secret' ? 'mono secret-value' : ''}>{key === 'password' || key === 'secret' ? '************' : String(value)}</b><button className="icon-button subtle" onClick={() => navigator.clipboard.writeText(String(value))}><Clipboard size={14} /></button></div></div>)}</div><div className="attachment-list">{(selected.attachments ?? []).map((attachment) => <div key={attachment.id}><button onClick={() => void downloadEncryptedAttachment(attachment)}><Paperclip size={14} /><span><b>{attachment.name}</b><small>{Math.ceil(attachment.size / 1024)} KiB</small></span></button><button className="icon-button danger-icon" aria-label={`Delete ${attachment.name}`} onClick={() => void removeAttachment(selected, attachment.id)}><Trash2 size={14} /></button></div>)}<input ref={attachmentInput} className="visually-hidden" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void attachFile(file) }} /><button className="secondary-button full" onClick={() => attachmentInput.current?.click()}><Paperclip size={14} /> Add encrypted attachment</button></div><div className="detail-footer"><ShieldCheck size={14} /> Decrypted only on this device</div></aside>}
+      {selected && <VaultItemDetails item={selected} onClose={() => setSelected(null)} onEdit={() => setEditing(selected)} onDelete={() => void remove(selected)} onAttach={() => attachmentInput.current?.click()} onDownloadAttachment={(attachment) => void downloadEncryptedAttachment(attachment)} onDeleteAttachment={(attachmentId) => void removeAttachment(selected, attachmentId)} onRequireReauth={requireReauthentication} onCopy={(value) => void copyValue(value)} />}
+      <input ref={attachmentInput} className="visually-hidden" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void attachFile(file) }} />
     </div>
     {editing !== undefined && <ItemEditor {...(editing ? { existing: editing } : {})} onSave={(item) => void save(item)} onClose={() => setEditing(undefined)} />}
+    {reauthRequest && <ReauthenticationDialog reason={reauthRequest.reason} onCancel={() => setReauthRequest(null)} onConfirm={confirmReauthentication} />}
     {settings && <SettingsDialog onClose={() => setSettings(false)} onLock={onLock} onPlaintextExport={exportPlaintext} onDeleteAccount={deleteVaultAccount} onReauthenticate={reauthenticateForSettings} />}
   </div>
 }

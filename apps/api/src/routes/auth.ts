@@ -16,8 +16,10 @@ import { decryptMfaSecret, verifyTotp, type SecretEnvelope } from '../mfa-securi
 
 export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): void {
   const { config, database, email, sessionCookie } = context
+  const authRateLimit = (production: { max: number; timeWindow: string }) =>
+    config.nodeEnv === 'production' ? production : { max: 100, timeWindow: '1 minute' }
 
-  app.post('/v1/auth/prelogin', { config: { rateLimit: { max: 15, timeWindow: '1 minute' } } }, async (request, reply) => {
+  app.post('/v1/auth/prelogin', { config: { rateLimit: authRateLimit({ max: 15, timeWindow: '1 minute' }) } }, async (request, reply) => {
     const parsed = preloginRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const user = await database.findUserByEmail(parsed.data.email)
@@ -27,7 +29,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     }
   })
 
-  app.post('/v1/auth/register', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (request, reply) => {
+  app.post('/v1/auth/register', { config: { rateLimit: authRateLimit({ max: 5, timeWindow: '15 minutes' }) } }, async (request, reply) => {
     const parsed = registerRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request', details: parsed.error.flatten().fieldErrors })
     const authVerifierHash = await hashAuthKey(parsed.data.authKey, config.authPepper)
@@ -60,7 +62,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     return { verified: true }
   })
 
-  app.post('/v1/auth/login', { config: { rateLimit: { max: 8, timeWindow: '5 minutes' } } }, async (request, reply) => {
+  app.post('/v1/auth/login', { config: { rateLimit: authRateLimit({ max: 8, timeWindow: '5 minutes' }) } }, async (request, reply) => {
     const parsed = loginRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const user = await database.findUserByEmail(parsed.data.email)
@@ -89,7 +91,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     return issueBrowserSession(context, user, parsed.data.deviceName, request, reply)
   })
 
-  app.post('/v1/auth/recovery/start', { config: { rateLimit: { max: 3, timeWindow: '30 minutes' } } }, async (request, reply) => {
+  app.post('/v1/auth/recovery/start', { config: { rateLimit: authRateLimit({ max: 3, timeWindow: '30 minutes' }) } }, async (request, reply) => {
     const parsed = recoveryStartRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const user = await database.findUserByEmail(parsed.data.email)
@@ -106,7 +108,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     return reply.code(202).send({ accepted: true })
   })
 
-  app.post('/v1/auth/recovery/challenge', { config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } }, async (request, reply) => {
+  app.post('/v1/auth/recovery/challenge', { config: { rateLimit: authRateLimit({ max: 10, timeWindow: '10 minutes' }) } }, async (request, reply) => {
     const parsed = recoveryChallengeRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const challenge = await database.recoveryChallenge(sha256(parsed.data.token))
@@ -115,7 +117,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     return { email: challenge.email, recoveryWrappedVaultKey: challenge.recoveryWrappedVaultKey, mfaRequired: factors.length > 0, mfaMethods: [...new Set(factors.map((factor) => factor.kind))] }
   })
 
-  app.post('/v1/auth/recovery/complete', { config: { rateLimit: { max: 5, timeWindow: '30 minutes' } } }, async (request, reply) => {
+  app.post('/v1/auth/recovery/complete', { config: { rateLimit: authRateLimit({ max: 5, timeWindow: '30 minutes' }) } }, async (request, reply) => {
     const parsed = recoveryCompleteRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const challenge = await database.recoveryChallenge(sha256(parsed.data.token))

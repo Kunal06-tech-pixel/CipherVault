@@ -17,7 +17,7 @@ The implemented core and remaining store/public-launch work are tracked in [docs
 | `packages/contracts` | Versioned Zod API and encrypted-record contracts |
 | `packages/crypto` | Argon2id, HKDF, AES-256-GCM, vault/item/recovery key hierarchy |
 
-The original single-browser prototype remains under `src/` only as a migration source and visual-style foundation. New development runs from `apps/web`.
+The original single-browser prototype has been retired. New development and all maintained UI behavior run from `apps/web`; the root `src/` directory only retains shared styling used by the web app.
 
 ## Local development
 
@@ -82,6 +82,7 @@ npm run audit:security
 - Decrypted keys live in a dedicated worker and are cleared on lock. Persistent browser storage contains encrypted items only.
 
 See [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) for security boundaries and [docs/OPERATIONS.md](docs/OPERATIONS.md) for deployment, backups, monitoring, and rotation.
+Use [docs/DEPLOYMENT_ROADMAP.md](docs/DEPLOYMENT_ROADMAP.md) for the Netlify plus backend deployment sequence.
 
 Completed hardening increments and their tradeoffs are recorded in [docs/HARDENING_PHASE_1.md](docs/HARDENING_PHASE_1.md).
 

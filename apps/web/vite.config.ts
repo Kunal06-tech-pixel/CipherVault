@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const productionCsp = [
+export const productionCsp = [
   "default-src 'self'",
   "script-src 'self' 'wasm-unsafe-eval'",
   "worker-src 'self' blob:",
@@ -17,7 +17,7 @@ const productionCsp = [
 // Vite's development runtime injects a refresh preamble and browser tooling may
 // evaluate generated code.
 // This relaxation is never emitted by the production build or preview server.
-const developmentCsp = productionCsp
+export const developmentCsp = productionCsp
   .replace(
     "script-src 'self' 'wasm-unsafe-eval'",
     "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'",

@@ -1,5 +1,6 @@
 import type { VaultItem, VaultItemType } from '@ciphervault/contracts'
 import type { passwordHealth } from '../../health'
+import { dashboardTypeOrder } from './item-types'
 
 export type HealthMetrics = ReturnType<typeof passwordHealth>
 
@@ -16,8 +17,8 @@ export function categoryCounts(items: VaultItem[]) {
   const live = items.filter((item) => !item.archived)
   const count = (type: VaultItemType) => live.filter((item) => item.type === type).length
   return {
-    login: count('login'), secureNote: count('secureNote'), card: count('card'),
-    identity: count('identity'), totp: count('totp'), archive: items.filter((item) => item.archived).length,
+    ...Object.fromEntries(dashboardTypeOrder.map((type) => [type, count(type)])) as Record<VaultItemType, number>,
+    archive: items.filter((item) => item.archived).length,
   }
 }
 

@@ -1,4 +1,5 @@
 import { encryptedItemSchema, vaultItemSchema, type EncryptedItem, type VaultItem, type VaultItemType } from '@ciphervault/contracts'
+import { normalizeVaultItem } from '../vault/vault-item-normalize'
 
 export type VaultImport =
   | { kind: 'plaintext'; items: VaultItem[] }
@@ -38,9 +39,15 @@ function csvRows(source: string): string[][] {
 function csvType(value: string): VaultItemType {
   const normalized = value.toLowerCase().replace(/[\s_-]/gu, '')
   if (normalized === 'login' || normalized === 'password') return 'login'
-  if (normalized === 'securenote' || normalized === 'note') return 'secureNote'
-  if (normalized === 'card' || normalized === 'paymentcard') return 'card'
-  if (normalized === 'identity') return 'identity'
+  if (normalized === 'securenote' || normalized === 'note') return 'secure_note'
+  if (normalized === 'card' || normalized === 'paymentcard') return 'payment_card'
+  if (normalized === 'bankaccount' || normalized === 'bank') return 'bank_account'
+  if (normalized === 'recoverycodes') return 'recovery_codes'
+  if (normalized === 'apisecret' || normalized === 'apikey' || normalized === 'developersecret') return 'api_secret'
+  if (normalized === 'wifi' || normalized === 'wificredential') return 'wifi'
+  if (normalized === 'identity' || normalized === 'identitydocument') return 'identity_document'
+  if (normalized === 'softwarelicense' || normalized === 'softwarelicence' || normalized === 'license' || normalized === 'licence') return 'software_license'
+  if (normalized === 'customsecret' || normalized === 'custom') return 'custom_secret'
   if (normalized === 'totp' || normalized === 'authenticator') return 'totp'
   throw new Error(`Unsupported vault item type: ${value}`)
 }
@@ -57,17 +64,18 @@ function parseCsv(source: string): VaultItem[] {
     if (!name) throw new Error(`CSV row ${rowIndex + 2} is missing a name.`)
     const excluded = new Set(['name', 'type', 'favorite', 'tags', 'archived'])
     const fields = Object.fromEntries(Object.entries(record).filter(([key, value]) => !excluded.has(key) && value !== ''))
-    return vaultItemSchema.parse({
+    return vaultItemSchema.parse(normalizeVaultItem({
       id: crypto.randomUUID(),
       type: csvType(record.type || 'login'),
       name,
+      category: record.category || 'Personal',
       favorite: /^(1|true|yes)$/iu.test(record.favorite ?? ''),
       tags: (record.tags ?? '').split(/[;,]/u).map((tag) => tag.trim()).filter(Boolean),
       archived: /^(1|true|yes)$/iu.test(record.archived ?? ''),
       createdAt: now,
       updatedAt: now,
       fields,
-    })
+    }))
   })
 }
 
@@ -88,12 +96,12 @@ export function parseVaultImport(filename: string, source: string): VaultImport 
     const now = new Date().toISOString()
     return {
       kind: 'plaintext',
-      items: envelope.items.map((item) => vaultItemSchema.parse({
+      items: envelope.items.map((item) => vaultItemSchema.parse(normalizeVaultItem({
         ...(item as object),
         id: crypto.randomUUID(),
         createdAt: now,
         updatedAt: now,
-      })),
+      }))),
     }
   }
   throw new Error('Unsupported CipherVault import format.')

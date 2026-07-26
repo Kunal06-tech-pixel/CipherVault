@@ -1,4 +1,5 @@
 import type { VaultItem } from '@ciphervault/contracts'
+import { normalizeVaultItem } from './features/vault/vault-item-normalize'
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
@@ -40,10 +41,11 @@ export async function unlockLegacyVault(masterPassword: string): Promise<VaultIt
       { name: 'AES-GCM', iv: buffer(fromBase64(envelope.iv)) }, key, buffer(fromBase64(envelope.ciphertext)),
     )
     const legacy = JSON.parse(decoder.decode(plaintext)) as { entries?: Array<Record<string, unknown>> }
-    return (legacy.entries ?? []).map((entry) => ({
+    return (legacy.entries ?? []).map((entry) => normalizeVaultItem({
       id: typeof entry.id === 'string' ? entry.id : crypto.randomUUID(),
       type: 'login',
       name: String(entry.title || 'Imported login'),
+      category: String(entry.category || 'Personal'),
       favorite: Boolean(entry.favorite),
       tags: [String(entry.category || 'Imported')],
       archived: false,

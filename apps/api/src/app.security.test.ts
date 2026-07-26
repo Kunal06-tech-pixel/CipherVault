@@ -155,4 +155,99 @@ describe('API request security', () => {
       await app.close()
     }
   })
+
+  it('rejects plaintext-shaped sync mutations before persistence', async () => {
+    const sessionToken = 'session-token'
+    const csrfToken = 'csrf-token'
+    const applyMutations = vi.fn(async () => ({ accepted: [], conflicts: [], cursor: 0 }))
+    const dependencies = testDependencies(vi.fn(async () => null), {
+      findSession: vi.fn(async (tokenHash) => tokenHash === sha256(sessionToken) ? {
+        id: '10000000-0000-4000-8000-000000000001',
+        userId: '20000000-0000-4000-8000-000000000002',
+        csrfHash: sha256(csrfToken),
+        deviceName: 'Test browser',
+        createdAt: new Date(),
+        lastSeenAt: new Date(),
+        expiresAt: new Date(Date.now() + 60_000),
+        reauthenticatedAt: null,
+      } : null),
+      findUserById: vi.fn(async () => ({
+        id: '20000000-0000-4000-8000-000000000002',
+        email: 'person@example.com',
+        emailVerifiedAt: new Date(),
+        authVerifierHash: 'unused',
+        kdf: wrappedVaultKey.kdf,
+        kdfSalt: wrappedVaultKey.salt,
+        wrappedVaultKey,
+        recoveryWrappedVaultKey: { cryptoVersion: 2 as const, nonce: 'D'.repeat(16), ciphertext: 'E'.repeat(43) },
+      })),
+      applyMutations,
+    })
+    const app = await buildApp(config, dependencies)
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/v1/sync',
+        headers: { origin: config.publicOrigin, cookie: `__Host-cv_session=${sessionToken}`, 'x-cv-csrf': csrfToken },
+        payload: { mutations: [{ itemId: '30000000-0000-4000-8000-000000000003', baseRevision: 0, tombstone: true, title: 'plaintext' }] },
+      })
+      expect(response.statusCode).toBe(400)
+      expect(applyMutations).not.toHaveBeenCalled()
+    } finally {
+      await app.close()
+    }
+  })
+
+  it('rejects malformed encrypted sync envelopes before persistence', async () => {
+    const sessionToken = 'session-token'
+    const csrfToken = 'csrf-token'
+    const applyMutations = vi.fn(async () => ({ accepted: [], conflicts: [], cursor: 0 }))
+    const dependencies = testDependencies(vi.fn(async () => null), {
+      findSession: vi.fn(async () => ({
+        id: '10000000-0000-4000-8000-000000000001',
+        userId: '20000000-0000-4000-8000-000000000002',
+        csrfHash: sha256(csrfToken),
+        deviceName: 'Test browser',
+        createdAt: new Date(),
+        lastSeenAt: new Date(),
+        expiresAt: new Date(Date.now() + 60_000),
+        reauthenticatedAt: null,
+      })),
+      findUserById: vi.fn(async () => ({
+        id: '20000000-0000-4000-8000-000000000002',
+        email: 'person@example.com',
+        emailVerifiedAt: new Date(),
+        authVerifierHash: 'unused',
+        kdf: wrappedVaultKey.kdf,
+        kdfSalt: wrappedVaultKey.salt,
+        wrappedVaultKey,
+        recoveryWrappedVaultKey: { cryptoVersion: 2 as const, nonce: 'D'.repeat(16), ciphertext: 'E'.repeat(43) },
+      })),
+      applyMutations,
+    })
+    const app = await buildApp(config, dependencies)
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/v1/sync',
+        headers: { origin: config.publicOrigin, cookie: `__Host-cv_session=${sessionToken}`, 'x-cv-csrf': csrfToken },
+        payload: {
+          mutations: [{
+            itemId: '30000000-0000-4000-8000-000000000003',
+            baseRevision: 0,
+            encryptedPayload: {
+              cryptoVersion: 2,
+              itemVersion: '40000000-0000-4000-8000-000000000004',
+              nonce: 'not valid base64',
+              ciphertext: 'plaintext secret',
+            },
+          }],
+        },
+      })
+      expect(response.statusCode).toBe(400)
+      expect(applyMutations).not.toHaveBeenCalled()
+    } finally {
+      await app.close()
+    }
+  })
 })

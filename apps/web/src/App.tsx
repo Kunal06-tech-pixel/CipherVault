@@ -21,7 +21,11 @@ export default function App() {
     if (key) setRecoveryKey(key)
   }
 
-  useEffect(() => () => vaultCrypto.destroy(), [])
+  useEffect(() => {
+    const lockOnPageHide = () => { void vaultCrypto.lock() }
+    window.addEventListener('pagehide', lockOnPageHide)
+    return () => window.removeEventListener('pagehide', lockOnPageHide)
+  }, [])
   if (!session && location.pathname.endsWith('/recover')) {
     return <AccountRecoveryScreen onRecovered={(email) => setSession({ email })} />
   }

@@ -12,18 +12,20 @@ export const kdfParametersSchema = z.object({
 
 export type KdfParameters = z.infer<typeof kdfParametersSchema>
 
+const base64UrlSchema = z.string().regex(/^[A-Za-z0-9_-]+$/u)
+
 export const encryptedPayloadSchema = z.object({
   cryptoVersion: z.literal(CRYPTO_VERSION),
   itemVersion: z.string().uuid(),
-  nonce: z.string().min(16).max(32),
-  ciphertext: z.string().min(16).max(2_000_000),
-})
+  nonce: base64UrlSchema.min(16).max(32),
+  ciphertext: base64UrlSchema.min(16).max(2_000_000),
+}).strict()
 
 export const encryptedItemSchema = encryptedPayloadSchema.extend({
   id: z.string().uuid(),
   revision: z.number().int().nonnegative(),
   deletedAt: z.string().datetime().nullable(),
-})
+}).strict()
 
 export type EncryptedPayload = z.infer<typeof encryptedPayloadSchema>
 export type EncryptedItem = z.infer<typeof encryptedItemSchema>
@@ -64,7 +66,7 @@ export const syncMutationSchema = z.object({
   baseRevision: z.coerce.number().int().nonnegative(),
   encryptedPayload: encryptedPayloadSchema.optional(),
   tombstone: z.boolean().optional(),
-}).refine((value) => Boolean(value.encryptedPayload) !== Boolean(value.tombstone), {
+}).strict().refine((value) => Boolean(value.encryptedPayload) !== Boolean(value.tombstone), {
   message: 'Provide exactly one of encryptedPayload or tombstone',
 })
 
@@ -170,21 +172,73 @@ export const recoveryCompleteRequestSchema = z.object({
 
 export const batchSyncRequestSchema = z.object({
   mutations: z.array(syncMutationSchema).min(1).max(100),
-})
+}).strict()
 
-export const vaultItemTypeSchema = z.enum(['login', 'secureNote', 'card', 'identity', 'totp'])
+export const vaultItemTypeSchema = z.enum([
+  'login',
+  'payment_card',
+  'bank_account',
+  'secure_note',
+  'recovery_codes',
+  'api_secret',
+  'wifi',
+  'identity_document',
+  'software_license',
+  'custom_secret',
+  'totp',
+])
 export type VaultItemType = z.infer<typeof vaultItemTypeSchema>
+
+export const customFieldTypeSchema = z.enum([
+  'text',
+  'secret',
+  'username',
+  'password',
+  'pin',
+  'email',
+  'url',
+  'number',
+  'date',
+  'multiline',
+])
+export type CustomFieldType = z.infer<typeof customFieldTypeSchema>
+
+export const customFieldSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().trim().min(1).max(100),
+  value: z.string().max(10_000),
+  type: customFieldTypeSchema,
+  sensitive: z.boolean(),
+}).strict()
+export type CustomField = z.infer<typeof customFieldSchema>
+
+export const recoveryCodeItemSchema = z.object({
+  id: z.string().uuid(),
+  value: z.string().trim().min(1).max(500),
+  used: z.boolean(),
+}).strict()
+export type RecoveryCodeItem = z.infer<typeof recoveryCodeItemSchema>
+
+const fieldValueSchema = z.union([
+  z.string().max(50_000),
+  z.boolean(),
+  z.number(),
+  z.array(customFieldSchema).max(50),
+  z.array(recoveryCodeItemSchema).max(200),
+])
 
 export const vaultItemSchema = z.object({
   id: z.string().uuid(),
+  schemaVersion: z.literal(2),
   type: vaultItemTypeSchema,
   name: z.string().trim().min(1).max(500),
+  category: z.string().trim().min(1).max(100),
   favorite: z.boolean(),
   tags: z.array(z.string().trim().min(1).max(100)).max(100),
   archived: z.boolean(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
-  fields: z.record(z.string(), z.unknown()),
+  fields: z.record(z.string().trim().min(1).max(100), fieldValueSchema),
   passwordHistory: z.array(z.object({ password: z.string(), changedAt: z.string().datetime() })).max(100).optional(),
   attachmentIds: z.array(z.string().uuid()).max(100).optional(),
   attachments: z.array(z.object({
@@ -193,8 +247,8 @@ export const vaultItemSchema = z.object({
     contentType: z.string().max(200),
     size: z.number().int().positive().max(10 * 1024 * 1024),
     nonces: z.array(z.string().min(16).max(32)).min(1).max(160),
-  })).max(100).optional(),
-})
+  }).strict()).max(100).optional(),
+}).strict()
 
 export type VaultItem = z.infer<typeof vaultItemSchema>
 

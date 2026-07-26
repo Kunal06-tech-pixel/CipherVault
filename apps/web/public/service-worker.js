@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ciphervault-static-v2-beta1'
-const SHELL_URLS = ['/', '/manifest.webmanifest', '/icon.svg']
+const CACHE_NAME = 'ciphervault-static-v2-beta2'
+const SHELL_URLS = ['/', '/manifest.webmanifest?v=gold-20260726', '/icon.svg?v=gold-20260726']
 
 function isCacheableStaticRequest(request) {
   if (request.method !== 'GET') return false

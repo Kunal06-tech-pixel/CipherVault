@@ -16,7 +16,7 @@ WebExtension ── PKCE grant ──> API
 
 The API never receives the master password, vault key, or decrypted item/attachment fields. The client derives separate authentication and wrapping material, while the API stores a peppered verifier. Item, attachment, and recovery formats are versioned in `packages/contracts` and cryptographic operations are centralized in `packages/crypto` plus the web crypto worker.
 
-API routing lives in `apps/api/src/routes`, policy in request/session services, and persistence in repositories. Web features live under `apps/web/src/features`; the legacy root `src/` tree is migration-only and is not part of the production build.
+API routing lives in `apps/api/src/routes`, policy in request/session services, and persistence in repositories. Web features live under `apps/web/src/features`; the repository root no longer contains a maintained application surface.
 
 ## Release boundary
 

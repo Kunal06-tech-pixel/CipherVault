@@ -1,4 +1,8 @@
 node_modules/
+.agents/
+.codex/
+.github/hooks/
+.github/skills/
 .data/
 dist/
 coverage/

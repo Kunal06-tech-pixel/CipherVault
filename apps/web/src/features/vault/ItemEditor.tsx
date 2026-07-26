@@ -1,33 +1,63 @@
-import * as React from 'react'
-import { useState, type FormEvent } from 'react'
-import { Check, ChevronDown, Eye, EyeOff, ShieldCheck, X, WandSparkles } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ArrowLeft, X } from 'lucide-react'
 import type { VaultItem, VaultItemType } from '@ciphervault/contracts'
 import { typeLabels } from './item-types'
-import { formatCardNumber, initialFields, validateFields } from './item-form'
-
-const descriptions: Record<VaultItemType, string> = { login: 'Credentials for a website or app', secureNote: 'Private text that is not tied to a login', card: 'Payment card and billing details', identity: 'Personal details for forms and autofill', totp: 'One-time password authenticator' }
+import { ItemTypeSelector } from './ItemTypeSelector'
+import { formStateFromItem, VaultItemForm } from './VaultItemForm'
+import { itemTemplates } from './vault-item-templates'
 
 export function ItemEditor({ existing, onSave, onClose }: { existing?: VaultItem; onSave: (item: VaultItem) => void; onClose: () => void }) {
-  const [type, setType] = useState<VaultItemType>(existing?.type ?? 'login')
-  const [name, setName] = useState(existing?.name ?? '')
-  const [fields, setFields] = useState<Record<string, string>>(() => ({ ...initialFields[existing?.type ?? 'login'], ...(existing?.fields as Record<string, string> | undefined) }))
-  const [favorite, setFavorite] = useState(existing?.favorite ?? false)
-  const [tags, setTags] = useState(existing?.tags.join(', ') ?? '')
-  const [revealed, setRevealed] = useState(false)
+  const [type, setType] = useState<VaultItemType | null>(existing?.type ?? null)
+  const initial = useMemo(() => formStateFromItem(existing, existing?.type ?? 'login'), [existing])
+  const [name, setName] = useState(initial.name)
+  const [category, setCategory] = useState(initial.category)
+  const [tags, setTags] = useState(initial.tags)
+  const [favorite, setFavorite] = useState(initial.favorite)
+  const [fields, setFields] = useState<VaultItem['fields']>(initial.fields)
   const [error, setError] = useState('')
-  const update = (key: string, value: string) => setFields((current) => ({ ...current, [key]: value }))
-  const field = (key: string, label: string, options: { type?: string; placeholder?: string; area?: boolean; required?: boolean } = {}) => <label className={options.area ? 'form-span' : ''}><span className="field-label">{label}{options.required && <em>Required</em>}</span>{options.area ? <textarea rows={5} value={fields[key] ?? ''} onChange={(e) => update(key, e.target.value)} placeholder={options.placeholder} /> : <div className={key === 'password' ? 'password-field' : ''}><input type={key === 'password' && !revealed ? 'password' : options.type ?? 'text'} value={fields[key] ?? ''} onChange={(e) => update(key, e.target.value)} placeholder={options.placeholder} required={options.required} />{key === 'password' && <button type="button" className="icon-button subtle" onClick={() => setRevealed(!revealed)} aria-label="Toggle password visibility">{revealed ? <EyeOff size={16} /> : <Eye size={16} />}</button>}</div>}</label>
-  const section = (title: string, body: React.ReactNode) => <div className="editor-section"><h3>{title}</h3><div className="editor-grid">{body}</div></div>
-  const submit = (event: FormEvent) => { event.preventDefault(); const validation = !name.trim() ? 'Give this item a descriptive name.' : validateFields(type, fields); if (validation) return setError(validation); const now = new Date().toISOString(); onSave({ id: existing?.id ?? crypto.randomUUID(), type, name: name.trim(), favorite, tags: tags.split(',').map((v) => v.trim()).filter(Boolean), archived: existing?.archived ?? false, createdAt: existing?.createdAt ?? now, updatedAt: now, fields }) }
-  const resetType = (next: VaultItemType) => { if (!existing && Object.values(fields).some(Boolean) && !window.confirm('Switching type will clear entered fields. Continue?')) return; setType(next); setFields({ ...initialFields[next] }); setError('') }
-  return <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}><section className="modal entry-modal" role="dialog" aria-modal="true" aria-labelledby="item-editor-title"><div className="modal-heading"><div><p className="eyebrow">Encrypted record</p><h2 id="item-editor-title">{existing ? 'Edit item' : 'Add to your vault'}</h2><p className="editor-subtitle">{descriptions[type]}</p></div><button className="icon-button" onClick={onClose} aria-label="Close"><X size={19} /></button></div><form onSubmit={submit}>
-    <div className="editor-type-row"><label><span className="field-label">Item type</span><div className="select-wrap"><select value={type} onChange={(e) => resetType(e.target.value as VaultItemType)} disabled={Boolean(existing)}>{Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><ChevronDown size={16} /></div></label><label><span className="field-label">Name<em>Required</em></span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Personal Gmail" required autoFocus /></label></div>
-    {type === 'login' && section('Sign-in details', <><label><span className="field-label">Username or email<em>Required</em></span><input value={fields.username} onChange={(e) => update('username', e.target.value)} required /></label><label><span className="field-label">Password<em>Required</em></span><div className="password-field"><input type={revealed ? 'text' : 'password'} value={fields.password || ''} onChange={(e) => update('password', e.target.value)} required /><button type="button" className="icon-button subtle" onClick={() => update('password', crypto.randomUUID().replaceAll('-', '') + 'A!9')} aria-label="Generate password"><WandSparkles size={15} /></button><button type="button" className="icon-button subtle" onClick={() => setRevealed(!revealed)} aria-label="Toggle password visibility">{revealed ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>{field('url', 'Website', { type: 'url', placeholder: 'https://example.com' })}</>)}
-    {type === 'secureNote' && section('Private note', field('note', 'Note', { area: true, required: true, placeholder: 'Write anything you want to keep encrypted...' }))}
-    {type === 'card' && section('Payment details', <>{field('cardholder', 'Cardholder name', { required: true })}{field('brand', 'Card network', { placeholder: 'Visa, Mastercard...' })}<label><span className="field-label">Card number<em>Required</em></span><input inputMode="numeric" value={formatCardNumber(fields.number)} onChange={(e) => update('number', e.target.value.replace(/\D/g, ''))} placeholder="1234 5678 9012 3456" required /></label>{field('expiry', 'Expiry (MM/YY)', { required: true, placeholder: 'MM/YY' })}{field('cvv', 'Security code', { required: true, placeholder: '123' })}{field('pin', 'PIN', { type: 'password' })}</>)}
-    {type === 'identity' && <>{section('Personal details', <>{field('firstName', 'First name')}{field('lastName', 'Last name')}{field('email', 'Email', { type: 'email' })}{field('phone', 'Phone')}{field('dateOfBirth', 'Date of birth', { placeholder: 'YYYY-MM-DD' })}</>)}{section('Address', <>{field('address', 'Street address', { area: true })}{field('city', 'City')}{field('state', 'State / province')}{field('postalCode', 'Postal code')}{field('country', 'Country')}</>)}</>}
-    {type === 'totp' && section('Authenticator', <>{field('issuer', 'Issuer')}{field('account', 'Account')}{field('secret', 'Secret key', { required: true })}<label><span className="field-label">Digits</span><select value={fields.digits} onChange={(e) => update('digits', e.target.value)}><option>6</option><option>8</option></select></label><label><span className="field-label">Algorithm</span><select value={fields.algorithm} onChange={(e) => update('algorithm', e.target.value)}><option>SHA1</option><option>SHA256</option><option>SHA512</option></select></label></>)}
-    {(type === 'login' || type === 'card' || type === 'totp') && field('notes', 'Notes', { area: true })}<label><span className="field-label">Tags</span><input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="work, finance (comma separated)" /></label><label className="favorite-toggle"><input type="checkbox" checked={favorite} onChange={(e) => setFavorite(e.target.checked)} /><span className="custom-check"><Check size={13} /></span>Add to favorites</label>{error && <p className="form-error" role="alert">{error}</p>}<div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button className="primary-button"><ShieldCheck size={16} /> Encrypt and save</button></div></form></section></div>
+  const selectType = (nextType: VaultItemType) => {
+    setType(nextType)
+    const next = formStateFromItem(undefined, nextType)
+    setName('')
+    setCategory(next.category)
+    setTags('')
+    setFavorite(false)
+    setFields(next.fields)
+    setError('')
+  }
+  const template = type ? itemTemplates[type] : undefined
+
+  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <section className="modal entry-modal" role="dialog" aria-modal="true" aria-labelledby="item-editor-title">
+      <div className="modal-heading">
+        <div>
+          <p className="eyebrow">{existing ? 'Edit vault item' : type ? 'New vault item' : 'Select item type'}</p>
+          <h2 id="item-editor-title">{existing ? existing.name : type ? template?.label : 'Add secure item'}</h2>
+          <p className="editor-subtitle">{type ? template?.description : 'Choose the kind of encrypted information you want to store.'}</p>
+        </div>
+        <button className="icon-button" onClick={onClose} aria-label="Close"><X size={19} /></button>
+      </div>
+      {!type && <ItemTypeSelector onSelect={selectType} />}
+      {type && !existing && <button type="button" className="secondary-button back-type-button" onClick={() => setType(null)}><ArrowLeft size={15} /> Back to item types</button>}
+      {type && existing?.type === 'totp' && <p className="form-notice">Authenticator items are supported for existing records. New secure items use the main vault templates.</p>}
+      {type && <VaultItemForm
+        type={type}
+        {...(existing ? { existing } : {})}
+        name={name}
+        setName={setName}
+        category={category}
+        setCategory={setCategory}
+        tags={tags}
+        setTags={setTags}
+        favorite={favorite}
+        setFavorite={setFavorite}
+        fields={fields}
+        setFields={setFields}
+        error={error}
+        setError={setError}
+        onSave={onSave}
+      />}
+      {type && <p className="editor-subtitle">Type: {typeLabels[type]}</p>}
+    </section>
+  </div>
 }
-
-
