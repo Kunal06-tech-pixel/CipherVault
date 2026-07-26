@@ -65,7 +65,7 @@ services:
       valkey:
         condition: service_healthy
       minio:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health/ready').then(r=>{if(!r.ok)process.exit(1)})"]
       interval: 15s
@@ -102,7 +102,7 @@ services:
       valkey:
         condition: service_healthy
       minio:
-        condition: service_healthy
+        condition: service_started
 
   migrate:
     build:
@@ -164,11 +164,11 @@ services:
     volumes:
       - object_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 10s
       retries: 10
-      start_period: 10s
+      start_period: 30s
 
   mailpit:
     image: axllent/mailpit:v1.27

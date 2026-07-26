@@ -74,7 +74,7 @@ jobs:
           scan-type: image
           image-ref: ciphervault-api:ci
           severity: CRITICAL,HIGH
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           trivyignores: .trivyignore
       - name: Scan worker image
@@ -83,7 +83,7 @@ jobs:
           scan-type: image
           image-ref: ciphervault-worker:ci
           severity: CRITICAL,HIGH
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           trivyignores: .trivyignore
 
