@@ -180,16 +180,23 @@ services:
 secrets:
   postgres_password:
     file: ./secrets/postgres_password.txt
+    mode: 0444
   database_url:
     file: ./secrets/database_url.txt
+    mode: 0444
   auth_pepper:
     file: ./secrets/auth_pepper.txt
+    mode: 0444
   prelogin_secret:
     file: ./secrets/prelogin_secret.txt
+    mode: 0444
   mfa_encryption_key:
     file: ./secrets/mfa_encryption_key.txt
+    mode: 0444
   minio_password:
     file: ./secrets/minio_password.txt
+    mode: 0444
+
 
 volumes:
   postgres_data:

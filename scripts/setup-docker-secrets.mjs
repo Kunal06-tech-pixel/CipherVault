@@ -25,7 +25,7 @@ async function ensureSecret(name, bytes = 48) {
   const existing = await readSecret(name)
   if (existing) return existing
   const value = randomBytes(bytes).toString('base64url')
-  await writeFile(resolve(secretDirectory, `${name}.txt`), `${value}\n`, { mode: 0o600 })
+  await writeFile(resolve(secretDirectory, `${name}.txt`), `${value}\n`, { mode: 0o644 })
   return value
 }
 
@@ -44,7 +44,7 @@ if (existingDatabaseUrl && existingDatabaseUrl !== expectedDatabaseUrl) {
   throw new Error('database_url.txt does not match postgres_password.txt. Reconcile them before starting Compose.')
 }
 if (!existingDatabaseUrl) {
-  await writeFile(resolve(secretDirectory, 'database_url.txt'), `${expectedDatabaseUrl}\n`, { mode: 0o600 })
+  await writeFile(resolve(secretDirectory, 'database_url.txt'), `${expectedDatabaseUrl}\n`, { mode: 0o644 })
 }
 
 console.log('Docker secrets are present and internally consistent. Existing non-empty secrets were preserved.')
