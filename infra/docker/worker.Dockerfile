@@ -11,6 +11,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup -S ciphervault && adduser -S -G ciphervault ciphervault
 COPY --from=build --chown=ciphervault:ciphervault /app/apps/worker/dist ./dist
+COPY --from=build --chown=ciphervault:ciphervault /app/packages ./packages
 COPY --from=build --chown=ciphervault:ciphervault /app/node_modules ./node_modules
 USER ciphervault
 CMD ["node", "dist/worker.js"]
