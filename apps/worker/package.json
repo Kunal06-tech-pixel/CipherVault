@@ -1,0 +1,26 @@
+{
+  "name": "@ciphervault/worker",
+  "version": "2.0.0-beta.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsup src/worker.ts --format esm --dts --clean --out-dir dist",
+    "start": "node dist/worker.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.772.0",
+    "bullmq": "^5.41.9",
+    "emailjs": "^5.0.2",
+    "postgres": "^3.4.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "tsup": "^8.3.6",
+    "tsx": "^4.19.3",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "ciphervault",
+  "version": "2.0.0-beta.1",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:services": "concurrently -n web,api -c blue,green \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:external-db": "npm run dev:services",
+    "dev:web": "npm run dev -w @ciphervault/web",
+    "dev:api": "npm run dev -w @ciphervault/api",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "audit:security": "npm audit --audit-level=high",
+    "db:migrate": "npm run db:migrate -w @ciphervault/api",
+    "secrets:setup": "node scripts/setup-docker-secrets.mjs",
+    "infra:up": "npm run secrets:setup && docker compose -f infra/docker-compose.yml up -d postgres valkey mailpit minio",
+    "compose:up": "npm run secrets:setup && docker compose -f infra/docker-compose.yml up -d --build",
+    "test:compose": "node scripts/compose-smoke.mjs",
+    "backup:compose": "node scripts/backup-compose.mjs",
+    "restore:drill": "node scripts/restore-drill.mjs",
+    "verify:plaintext-negative": "node scripts/plaintext-negative-check.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.4.5",
+    "@electric-sql/pglite-socket": "^0.1.5",
+    "@playwright/test": "^1.61.1",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}

@@ -1,0 +1,26 @@
+:80 {
+  encode zstd gzip
+
+  @api path /v1/* /health/*
+  handle @api {
+    reverse_proxy api:3001
+  }
+
+  handle {
+    root * /srv
+    header {
+      Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default"
+      Referrer-Policy "no-referrer"
+      Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+      X-Content-Type-Options "nosniff"
+      Cross-Origin-Opener-Policy "same-origin"
+      Cross-Origin-Resource-Policy "same-origin"
+    }
+    @javascript path_regexp js \.m?js$
+    header @javascript Content-Type "application/javascript; charset=utf-8"
+    @html path / /index.html
+    header @html Cache-Control "no-store"
+    try_files {path} /index.html
+    file_server
+  }
+}

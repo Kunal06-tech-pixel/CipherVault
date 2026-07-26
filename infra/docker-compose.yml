@@ -1,0 +1,197 @@
+name: ciphervault
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - web_dist:/srv:ro
+      - caddy_data:/data
+    depends_on:
+      web-build:
+        condition: service_completed_successfully
+      api:
+        condition: service_healthy
+
+  web-build:
+    build:
+      context: ..
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        VITE_API_URL: ""
+    volumes:
+      - web_dist:/output
+    restart: "no"
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 1.5
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      PUBLIC_ORIGIN: http://localhost:8080
+      COOKIE_SECURE: "false"
+      DATABASE_URL_FILE: /run/secrets/database_url
+      AUTH_PEPPER_FILE: /run/secrets/auth_pepper
+      PRELOGIN_SECRET_FILE: /run/secrets/prelogin_secret
+      MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
+      REDIS_URL: redis://valkey:6379
+      EMAIL_DELIVERY: queue
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: security@ciphervault.local
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: ciphervault-attachments
+      S3_ACCESS_KEY: ciphervault
+      S3_SECRET_KEY_FILE: /run/secrets/minio_password
+    secrets: [database_url, auth_pepper, prelogin_secret, mfa_encryption_key, minio_password]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health/ready').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/docker/worker.Dockerfile
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 1.0
+    environment:
+      NODE_ENV: production
+      DATABASE_URL_FILE: /run/secrets/database_url
+      REDIS_URL: redis://valkey:6379
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: security@ciphervault.local
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: ciphervault-attachments
+      S3_ACCESS_KEY: ciphervault
+      S3_SECRET_KEY_FILE: /run/secrets/minio_password
+    secrets: [database_url, minio_password]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    command: ["node", "dist/migrate.js"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL_FILE: /run/secrets/database_url
+      AUTH_PEPPER_FILE: /run/secrets/auth_pepper
+      PRELOGIN_SECRET_FILE: /run/secrets/prelogin_secret
+      MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
+    secrets: [database_url, auth_pepper, prelogin_secret, mfa_encryption_key]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ciphervault
+      POSTGRES_USER: ciphervault
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ciphervault -d ciphervault"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--save", "60", "1", "--appendonly", "yes"]
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ciphervault
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_password
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:8080
+    secrets: [minio_password]
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - object_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  database_url:
+    file: ./secrets/database_url.txt
+  auth_pepper:
+    file: ./secrets/auth_pepper.txt
+  prelogin_secret:
+    file: ./secrets/prelogin_secret.txt
+  mfa_encryption_key:
+    file: ./secrets/mfa_encryption_key.txt
+  minio_password:
+    file: ./secrets/minio_password.txt
+
+volumes:
+  postgres_data:
+  valkey_data:
+  object_data:
+  caddy_data:
+  web_dist:

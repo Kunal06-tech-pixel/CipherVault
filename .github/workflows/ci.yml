@@ -1,0 +1,128 @@
+name: security-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --audit-level=high
+      - name: Ensure source does not contain committed secrets
+        run: |
+          if git grep -nE '(AUTH_PEPPER|PRELOGIN_SECRET|MFA_ENCRYPTION_KEY|POSTGRES_PASSWORD|S3_SECRET_KEY)=[^$<{]' -- ':!*.example' ':!docs/*'; then
+            echo 'Potential committed secret found'
+            exit 1
+          fi
+
+  sast-and-secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+      - uses: github/codeql-action/init@v3
+        with: { languages: javascript-typescript }
+      - uses: github/codeql-action/analyze@v3
+
+  container-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/api.Dockerfile
+          load: true
+          tags: ciphervault-api:ci
+      - name: Build worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/worker.Dockerfile
+          load: true
+          tags: ciphervault-worker:ci
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ciphervault-api:ci
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          ignore-unfixed: true
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run secrets:setup
+      - run: docker compose -f infra/docker-compose.yml up -d --build
+      - run: npm run test:compose
+      - run: npm run backup:compose -- ci-backup
+      - run: npm run restore:drill -- ci-backup
+      - run: CV_FORBIDDEN_MARKER=CI-SMOKE-PLAINTEXT-NEVER-SENT npm run verify:plaintext-negative
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
+      - name: Scan worker image
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ciphervault-worker:ci
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          ignore-unfixed: true
+      - name: Generate API SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ciphervault-api:ci
+          artifact-name: ciphervault-api.spdx.json
+          format: spdx-json
+
+  compose-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run secrets:setup
+      - run: docker compose -f infra/docker-compose.yml up -d --build
+      - run: npm run test:compose
+      - name: ZAP baseline
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://localhost:8080
+          fail_action: true
+      - name: Compose logs on failure
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml logs --no-color

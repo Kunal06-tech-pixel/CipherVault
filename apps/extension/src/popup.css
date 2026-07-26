@@ -1,0 +1,23 @@
+* { box-sizing: border-box; }
+body { width: 360px; min-height: 420px; margin: 0; color: #183b31; background: #f5faf7; font-family: Inter, 'Segoe UI', sans-serif; }
+button, input { font: inherit; }
+.popup { min-height: 420px; padding: 15px; }
+.brand { height: 38px; display: flex; align-items: center; gap: 8px; }
+.brand > span { width: 32px; height: 32px; display: grid; place-items: center; color: #fff; border-radius: 9px; background: linear-gradient(145deg, #0bab74, #007c54); box-shadow: 0 5px 14px rgba(0,124,84,.2); }
+.brand b { font-size: 15px; }
+.brand i { margin-left: auto; color: #168d6a; font-size: 9px; font-style: normal; }
+.search { height: 38px; margin: 14px 0; padding: 0 10px; display: flex; align-items: center; gap: 7px; color: #789087; border: 1px solid #dce9e4; border-radius: 9px; background: #fff; }
+.search:focus-within { border-color: #43b58c; box-shadow: 0 0 0 3px rgba(0,155,104,.1); }
+.search input { flex: 1; border: 0; outline: 0; font-size: 11px; }
+.matches > label { color: #8b95a5; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; }
+.match { width: 100%; min-height: 56px; margin-top: 7px; padding: 7px 10px; display: flex; align-items: center; gap: 10px; border: 1px solid #dfe9e5; border-radius: 10px; background: #fff; text-align: left; cursor: pointer; }
+.match:hover { border-color: #9fd4bf; background: #f4fbf8; }
+.match > span { width: 34px; height: 34px; display: grid; place-items: center; color: #008f60; border-radius: 9px; background: #e8f7f1; }
+.match div { flex: 1; min-width: 0; }
+.match b, .match small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.match b { font-size: 10px; }.match small { margin-top: 4px; color: #8791a2; font-size: 8px; }.match > svg { color: #20a27c; }
+.generator { margin-top: 16px; padding: 12px; border: 1px solid #d9ece4; border-radius: 10px; color: #4a6259; background: #eaf8f2; }
+.generator > div { display: flex; align-items: center; gap: 6px; color: #007c54; font-size: 10px; }.generator p { margin: 8px 0; font-size: 9px; }.generator code { display: block; margin: 9px 0; overflow-wrap: anywhere; font-size: 10px; }
+.generator button, .locked > button { height: 32px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; color: #fff; background: #009b68; font-size: 9px; font-weight: 700; cursor: pointer; }
+.popup footer { margin-top: 18px; display: flex; align-items: center; gap: 5px; color: #8792a3; font-size: 8px; }.popup footer svg { color: #19a47c; }.popup footer button { margin-left: auto; border: 0; color: #60708a; background: transparent; font-size: 8px; }
+.locked { text-align: center; background: #fff; }.locked .brand { text-align: left; }.lock-art { width: 60px; height: 60px; margin: 50px auto 14px; display: grid; place-items: center; color: #008f60; border-radius: 18px; background: #e8f7f1; }.locked h1 { margin: 0; font-size: 18px; }.locked p { margin: 9px auto 19px; max-width: 260px; color: #71877f; font-size: 10px; line-height: 1.55; }.locked > button { height: 38px; }.locked > small { display: block; margin-top: 50px; color: #8c9c96; font-size: 8px; }
