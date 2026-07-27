@@ -3,8 +3,7 @@ services:
     name: ciphervault-api
     plan: free
     runtime: node
-    buildCommand: npm ci && npm run build -w @ciphervault/api
-    preDeployCommand: npm run db:migrate -w @ciphervault/api
+    buildCommand: npm ci && npm run build -w @ciphervault/api && npm run db:migrate -w @ciphervault/api
     startCommand: npm run start -w @ciphervault/api
     healthCheckPath: /health/ready
     envVars:
