@@ -15,8 +15,9 @@ function maskKind(key: string) {
   return 'generic' as const
 }
 
-export function VaultItemDetails({ item, onClose, onEdit, onDelete, onAttach, onDownloadAttachment, onDeleteAttachment, onRequireReauth, onCopy }: {
+export function VaultItemDetails({ item, attachmentsEnabled, onClose, onEdit, onDelete, onAttach, onDownloadAttachment, onDeleteAttachment, onRequireReauth, onCopy }: {
   item: VaultItem
+  attachmentsEnabled: boolean
   onClose: () => void
   onEdit: () => void
   onDelete: () => void
@@ -53,7 +54,7 @@ export function VaultItemDetails({ item, onClose, onEdit, onDelete, onAttach, on
     <div className="detail-identity"><span className="detail-avatar"><Icon size={27} /></span><h2>{item.name}</h2><p>{typeLabels[item.type]} / {item.category}</p></div>
     {item.type === 'totp' && Boolean(item.fields.secret) && <TotpCode secret={String(item.fields.secret)} />}
     <div className="detail-fields">{fieldRows.map(([key, value]) => <div className="detail-field" key={key}><span>{fieldTemplateFor(item.type, key)?.label ?? labelFor(key)}</span>{renderValue(key, value)}</div>)}</div>
-    <div className="attachment-list">{(item.attachments ?? []).map((attachment) => <div key={attachment.id}><button onClick={() => onDownloadAttachment(attachment)}><Paperclip size={14} /><span><b>{attachment.name}</b><small>{Math.ceil(attachment.size / 1024)} KiB</small></span></button><button className="icon-button danger-icon" aria-label={`Delete ${attachment.name}`} onClick={() => onDeleteAttachment(attachment.id)}><Trash2 size={14} /></button></div>)}<button className="secondary-button full" onClick={onAttach}><Paperclip size={14} /> Add encrypted attachment</button></div>
+    {attachmentsEnabled && <div className="attachment-list">{(item.attachments ?? []).map((attachment) => <div key={attachment.id}><button onClick={() => onDownloadAttachment(attachment)}><Paperclip size={14} /><span><b>{attachment.name}</b><small>{Math.ceil(attachment.size / 1024)} KiB</small></span></button><button className="icon-button danger-icon" aria-label={`Delete ${attachment.name}`} onClick={() => onDeleteAttachment(attachment.id)}><Trash2 size={14} /></button></div>)}<button className="secondary-button full" onClick={onAttach}><Paperclip size={14} /> Add encrypted attachment</button></div>}
     <div className="detail-footer">Created {new Date(item.createdAt).toLocaleDateString()} / Updated {new Date(item.updatedAt).toLocaleDateString()}</div>
   </aside>
 }

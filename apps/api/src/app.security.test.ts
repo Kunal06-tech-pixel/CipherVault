@@ -15,6 +15,7 @@ const config: AppConfig = {
   mfaEncryptionKey: Buffer.alloc(32, 9).toString('base64url'),
   cookieSecure: true,
   allowUnverifiedLogin: false,
+  attachmentsEnabled: false,
   smtpHost: 'unused',
   smtpPort: 1025,
   smtpFrom: 'security@example.com',
@@ -57,6 +58,43 @@ function testDependencies(
 }
 
 describe('API request security', () => {
+  it('reports ready without object storage when attachments are disabled', async () => {
+    const ping = vi.fn(async () => undefined)
+    const diagnostics = vi.fn(async () => ({ mode: 'disabled' as const, waiting: 0, failed: 0 }))
+    const app = await buildApp({
+      ...config,
+      allowUnverifiedLogin: true,
+      emailDelivery: 'disabled',
+      attachmentsEnabled: false,
+    }, {
+      database: {
+        close: vi.fn(async () => undefined),
+        ping,
+        findSession: vi.fn(async () => null),
+      } as unknown as ApiDependencies['database'],
+      email: {
+        sendVerification: vi.fn(async () => undefined),
+        sendRecovery: vi.fn(async () => undefined),
+        diagnostics,
+      },
+      attachments: undefined,
+    })
+    try {
+      const response = await app.inject({ method: 'GET', url: '/health/diagnostics' })
+      expect(response.statusCode).toBe(200)
+      expect(response.json()).toEqual({
+        status: 'ready',
+        database: 'ok',
+        objectStorage: 'disabled',
+        queue: { mode: 'disabled', waiting: 0, failed: 0 },
+      })
+      expect(ping).toHaveBeenCalledOnce()
+      expect(diagnostics).toHaveBeenCalledOnce()
+    } finally {
+      await app.close()
+    }
+  })
+
   it('rejects a hostile Origin on public authentication mutations', async () => {
     const dependencies = testDependencies(vi.fn(async () => null))
     const app = await buildApp(config, dependencies)

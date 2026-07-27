@@ -4,6 +4,7 @@ import { requireAuthentication, type ApiContext } from '../api-context'
 
 export function registerAttachmentRoutes(app: FastifyInstance, context: ApiContext): void {
   const { database, attachments } = context
+  if (!attachments) throw new Error('Attachment routes require configured attachment storage.')
 
   app.post('/v1/attachments/initiate', { preHandler: requireAuthentication }, async (request, reply) => {
     const parsed = attachmentInitiateSchema.safeParse(request.body)

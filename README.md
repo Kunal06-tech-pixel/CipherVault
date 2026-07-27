@@ -82,7 +82,7 @@ npm run audit:security
 - Decrypted keys live in a dedicated worker and are cleared on lock. Persistent browser storage contains encrypted items only.
 
 See [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) for security boundaries and [docs/OPERATIONS.md](docs/OPERATIONS.md) for deployment, backups, monitoring, and rotation.
-Use [docs/DEPLOYMENT_ROADMAP.md](docs/DEPLOYMENT_ROADMAP.md) for the Netlify plus backend deployment sequence.
+Use [docs/BEGINNER_DEPLOYMENT.md](docs/BEGINNER_DEPLOYMENT.md) for the beginner Netlify + Supabase + Render deployment walkthrough, and [docs/DEPLOYMENT_ROADMAP.md](docs/DEPLOYMENT_ROADMAP.md) for the production readiness sequence.
 
 Completed hardening increments and their tradeoffs are recorded in [docs/HARDENING_PHASE_1.md](docs/HARDENING_PHASE_1.md).
 
