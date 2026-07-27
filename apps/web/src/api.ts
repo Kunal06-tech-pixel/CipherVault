@@ -1,7 +1,7 @@
 import type { EncryptedItem, KdfParameters, SyncMutation, SyncPage, WrappedVaultKey } from '@ciphervault/contracts'
 import type { RecoveryEnvelope } from '@ciphervault/crypto'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/+$/u, '')
 let csrfToken = ''
 
 export interface BrowserSession {

@@ -11,13 +11,15 @@ export class EmailService {
       : null
   }
 
-  async diagnostics(): Promise<{ mode: 'queue' | 'direct'; waiting: number; failed: number }> {
+  async diagnostics(): Promise<{ mode: 'disabled' | 'queue' | 'direct'; waiting: number; failed: number }> {
+    if (this.config.emailDelivery === 'disabled') return { mode: 'disabled', waiting: 0, failed: 0 }
     if (!this.queue) return { mode: 'direct', waiting: 0, failed: 0 }
     const [waiting, failed] = await Promise.all([this.queue.getWaitingCount(), this.queue.getFailedCount()])
     return { mode: 'queue', waiting, failed }
   }
 
   async sendVerification(email: string, token: string): Promise<void> {
+    if (this.config.emailDelivery === 'disabled') return
     const url = new URL('/verify-email', this.config.publicOrigin)
     url.searchParams.set('token', token)
     if (this.queue) {
@@ -31,8 +33,8 @@ export class EmailService {
     }
 
     const client = new SMTPClient({
-      host: this.config.smtpHost,
-      port: this.config.smtpPort,
+      host: this.config.smtpHost!,
+      port: this.config.smtpPort!,
       ...(this.config.smtpUser ? { user: this.config.smtpUser } : {}),
       ...(this.config.smtpPassword ? { password: this.config.smtpPassword } : {}),
       tls: this.config.smtpPort !== 1025,
@@ -40,7 +42,7 @@ export class EmailService {
     })
     try {
       await client.sendAsync({
-        from: this.config.smtpFrom,
+        from: this.config.smtpFrom!,
         to: email,
         subject: 'Verify your CipherVault account',
         text: `Verify your CipherVault account within 30 minutes: ${url.toString()}\n\nIf you did not create this account, ignore this message.`,
@@ -55,6 +57,7 @@ export class EmailService {
   }
 
   async sendRecovery(email: string, token: string): Promise<void> {
+    if (this.config.emailDelivery === 'disabled') return
     const url = new URL('/recover', this.config.publicOrigin)
     url.searchParams.set('token', token)
     if (this.queue) {
@@ -64,14 +67,14 @@ export class EmailService {
       return
     }
     const client = new SMTPClient({
-      host: this.config.smtpHost, port: this.config.smtpPort,
+      host: this.config.smtpHost!, port: this.config.smtpPort!,
       ...(this.config.smtpUser ? { user: this.config.smtpUser } : {}),
       ...(this.config.smtpPassword ? { password: this.config.smtpPassword } : {}),
       tls: this.config.smtpPort !== 1025, timeout: 10_000,
     })
     try {
       await client.sendAsync({
-        from: this.config.smtpFrom, to: email, subject: 'Recover your CipherVault account',
+        from: this.config.smtpFrom!, to: email, subject: 'Recover your CipherVault account',
         text: `Continue recovery within 30 minutes: ${url.toString()}\n\nYour offline recovery key is also required.`,
       })
     } finally { client.smtp.close() }

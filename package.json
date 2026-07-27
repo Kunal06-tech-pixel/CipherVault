@@ -26,6 +26,7 @@
     "backup:compose": "node scripts/backup-compose.mjs",
     "restore:drill": "node scripts/restore-drill.mjs",
     "verify:plaintext-negative": "node scripts/plaintext-negative-check.mjs",
+    "secrets:deployment": "node scripts/generate-deployment-secrets.mjs",
     "test:e2e": "playwright test"
   },
   "devDependencies": {

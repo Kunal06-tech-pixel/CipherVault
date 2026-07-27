@@ -30,7 +30,7 @@ Use Netlify only for the browser application:
 - Publish directory: `apps/web/dist`
 - Node version: `22`
 
-Host the API and worker separately on a Node/container platform such as Fly.io, Render, Railway, DigitalOcean App Platform, AWS ECS/App Runner, or a VPS running the existing Docker Compose stack.
+Host the API and worker separately on a Node/container platform such as Fly.io, Render, Railway, DigitalOcean App Platform, AWS ECS/App Runner, or a VPS running the existing Docker Compose stack. For a beginner Render path, use the repository `render.yaml` and [BEGINNER_DEPLOYMENT.md](BEGINNER_DEPLOYMENT.md).
 
 Recommended private-beta architecture:
 
@@ -77,7 +77,7 @@ Web build environment:
 VITE_API_URL=https://api.example.com
 ```
 
-After the API domain is final, update `netlify.toml` `Content-Security-Policy` so `connect-src` includes that API origin. Without this, browser API calls will be blocked by CSP.
+After the API domain is final, set `VITE_API_URL` in Netlify. The Netlify build runs `scripts/prepare-netlify-config.mjs`, which replaces the `netlify.toml` CSP placeholder so `connect-src` includes the API origin. For the free-only deployment, leave `VITE_ENABLE_ATTACHMENTS` unset and `ENABLE_ATTACHMENTS=false` so no object storage is required.
 
 ## Roadmap
 

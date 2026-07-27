@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: ciphervault-api
+    plan: free
+    runtime: node
+    buildCommand: npm ci && npm run build -w @ciphervault/api
+    preDeployCommand: npm run db:migrate -w @ciphervault/api
+    startCommand: npm run start -w @ciphervault/api
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ALLOW_UNVERIFIED_LOGIN
+        value: "true"
+      - key: EMAIL_DELIVERY
+        value: disabled
+      - key: ENABLE_ATTACHMENTS
+        value: "false"
+      - key: PUBLIC_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH_PEPPER
+        sync: false
+      - key: PRELOGIN_SECRET
+        sync: false
+      - key: MFA_ENCRYPTION_KEY
+        sync: false

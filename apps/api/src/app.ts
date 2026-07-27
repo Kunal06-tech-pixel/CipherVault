@@ -41,7 +41,7 @@ export async function buildApp(config: AppConfig, overrides: Partial<ApiDependen
     sessionCookie,
     database: overrides.database ?? new Database(config.databaseUrl),
     email: overrides.email ?? new EmailService(config),
-    attachments: overrides.attachments ?? new AttachmentStorage(config),
+    attachments: config.attachmentsEnabled ? overrides.attachments ?? new AttachmentStorage(config) : overrides.attachments,
   }
   const webOrigins = allowedWebOrigins(config)
 
@@ -100,7 +100,7 @@ export async function buildApp(config: AppConfig, overrides: Partial<ApiDependen
   registerAuthRoutes(app, context)
   registerSessionRoutes(app, context)
   registerSyncRoutes(app, context)
-  registerAttachmentRoutes(app, context)
+  if (config.attachmentsEnabled) registerAttachmentRoutes(app, context)
   registerPasswordHealthRoutes(app, context)
   registerMfaRoutes(app, context)
   registerExtensionRoutes(app, context)

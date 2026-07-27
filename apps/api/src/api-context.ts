@@ -21,7 +21,7 @@ export interface ApiDependencies {
     'writeSecurityEvent'>
   email: Pick<EmailService, 'sendVerification' | 'sendRecovery' | 'diagnostics'>
   attachments: Pick<AttachmentStorage,
-    'ensureBucket' | 'uploadUrls' | 'verifyChunks' | 'downloadUrls' | 'deleteChunks'>
+    'ensureBucket' | 'uploadUrls' | 'verifyChunks' | 'downloadUrls' | 'deleteChunks'> | undefined
 }
 
 export interface ApiContext extends ApiDependencies {

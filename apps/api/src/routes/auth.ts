@@ -16,6 +16,7 @@ import { decryptMfaSecret, verifyTotp, type SecretEnvelope } from '../mfa-securi
 
 export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): void {
   const { config, database, email, sessionCookie } = context
+  const verificationRequired = !config.allowUnverifiedLogin
   const authRateLimit = (production: { max: number; timeWindow: string }) =>
     config.nodeEnv === 'production' ? production : { max: 100, timeWindow: '1 minute' }
 
@@ -42,14 +43,14 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     }, sha256(verificationToken))
 
     // Existing and newly created accounts deliberately receive the same response.
-    if (!user) return reply.code(202).send({ accepted: true, verificationRequired: true })
+    if (!user) return reply.code(202).send({ accepted: true, verificationRequired })
     await database.writeSecurityEvent(user.id, 'account_registered', { ip: clientIpHash(request, config) })
     try {
       await email.sendVerification(user.email, verificationToken)
     } catch (error) {
       request.log.error({ error }, 'verification_email_failed')
     }
-    return reply.code(202).send({ accepted: true, verificationRequired: true })
+    return reply.code(202).send({ accepted: true, verificationRequired })
   })
 
   app.post('/v1/auth/verify-email', async (request, reply) => {

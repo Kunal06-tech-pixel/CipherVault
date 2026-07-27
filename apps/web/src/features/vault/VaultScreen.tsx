@@ -26,6 +26,8 @@ import { VaultItemDetails } from './VaultItemDetails'
 
 export type View = 'all' | 'favorites' | VaultItemType | 'archive' | 'health' | 'recent'
 
+const attachmentsEnabled = import.meta.env.VITE_ENABLE_ATTACHMENTS === 'true'
+
 export function VaultScreen({ email, onLock }: { email: string; onLock: () => void }) {
   const [items, setItems] = useState<VaultItem[]>([])
   const [encrypted, setEncrypted] = useState<EncryptedItem[]>([])
@@ -312,6 +314,10 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   }
 
   const attachFile = async (file: File) => {
+    if (!attachmentsEnabled) {
+      setMessage('Attachments are disabled on the free deployment.')
+      return
+    }
     if (!selected) return
     setMessage(`Encrypting attachment ${file.name}...`)
     try {
@@ -335,6 +341,10 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   }
 
   const removeAttachment = async (item: VaultItem, attachmentId: string) => {
+    if (!attachmentsEnabled) {
+      setMessage('Attachments are disabled on the free deployment.')
+      return
+    }
     await deleteRemoteAttachment(attachmentId)
     await save({
       ...item,
@@ -387,8 +397,8 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
         {view === 'health' ? <section className="health-grid"><article><span className="health-icon safe"><ShieldCheck /></span><b>{health.total - health.weak}</b><p>Strong login passwords</p></article><article><span className="health-icon warning"><KeyRound /></span><b>{health.weak}</b><p>Weak login passwords</p></article><article><span className="health-icon danger"><RefreshCw /></span><b>{health.reused}</b><p>Reused login passwords</p></article><article><span className="health-icon danger"><ShieldCheck /></span><b>{compromised ?? '-'}</b><p>Compromised logins</p></article><div className="health-note"><ShieldCheck size={20} /><div><b>Login health checks happen locally</b><p>Passwords are analyzed in memory. Compromised checks are opt-in and send only k-anonymous hash prefixes.</p><button className="secondary-button" disabled={checkingCompromised} onClick={() => void checkCompromisedPasswords()}>{checkingCompromised ? 'Checking anonymous ranges...' : 'Check compromised logins'}</button></div></div></section> : <section id="complete-vault-list" className="vault-list production-list">{filtered.length ? <>{filtered.map((item) => { const Icon = typeIcons[item.type]; return <button className={`production-row ${selected?.id === item.id ? 'selected' : ''}`} key={item.id} onClick={() => setSelected(item)}><span className="site-avatar"><Icon size={18} /></span><span className="entry-primary"><b>{item.name}</b><small>{safeSubtitle(item)}</small></span><span className="item-tags">{[item.category, ...item.tags].slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</span><span className="item-type">{typeLabels[item.type]}</span><Star className={item.favorite ? 'favorite-star' : ''} size={17} fill={item.favorite ? 'currentColor' : 'none'} /><MoreHorizontal size={17} /></button> })}</> : <div className="empty-state"><span><KeyRound size={29} /></span><h2>Your encrypted vault is ready</h2><p>Add a secure item. It is encrypted before synchronization.</p><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> Add first item</button></div>}</section>}
         <footer className="vault-footer"><span><ShieldCheck size={14} /> End-to-end encrypted</span><span>Server stores ciphertext only</span></footer>
       </main>
-      {selected && <VaultItemDetails item={selected} onClose={() => setSelected(null)} onEdit={() => setEditing(selected)} onDelete={() => void remove(selected)} onAttach={() => attachmentInput.current?.click()} onDownloadAttachment={(attachment) => void downloadEncryptedAttachment(attachment)} onDeleteAttachment={(attachmentId) => void removeAttachment(selected, attachmentId)} onRequireReauth={requireReauthentication} onCopy={(value) => void copyValue(value)} />}
-      <input ref={attachmentInput} className="visually-hidden" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void attachFile(file) }} />
+      {selected && <VaultItemDetails item={selected} attachmentsEnabled={attachmentsEnabled} onClose={() => setSelected(null)} onEdit={() => setEditing(selected)} onDelete={() => void remove(selected)} onAttach={() => attachmentInput.current?.click()} onDownloadAttachment={(attachment) => void downloadEncryptedAttachment(attachment)} onDeleteAttachment={(attachmentId) => void removeAttachment(selected, attachmentId)} onRequireReauth={requireReauthentication} onCopy={(value) => void copyValue(value)} />}
+      {attachmentsEnabled && <input ref={attachmentInput} className="visually-hidden" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void attachFile(file) }} />}
     </div>
     {editing !== undefined && <ItemEditor {...(editing ? { existing: editing } : {})} onSave={(item) => void save(item)} onClose={() => setEditing(undefined)} />}
     {reauthRequest && <ReauthenticationDialog reason={reauthRequest.reason} onCancel={() => setReauthRequest(null)} onConfirm={confirmReauthentication} />}

@@ -22,19 +22,42 @@ const schema = z.object({
   }, 'MFA_ENCRYPTION_KEY must be 32 random bytes encoded as base64url'),
   cookieSecure: z.boolean(),
   allowUnverifiedLogin: z.boolean(),
-  smtpHost: z.string(),
-  smtpPort: z.number().int().positive(),
-  smtpFrom: z.string().email(),
+  smtpHost: z.string().optional(),
+  smtpPort: z.number().int().positive().optional(),
+  smtpFrom: z.string().email().optional(),
   smtpUser: z.string().optional(),
   smtpPassword: z.string().optional(),
   redisUrl: z.string().optional(),
-  emailDelivery: z.enum(['direct', 'queue']),
-  s3Endpoint: z.string().url(),
-  s3PublicEndpoint: z.string().url(),
-  s3Region: z.string(),
-  s3Bucket: z.string(),
-  s3AccessKey: z.string(),
-  s3SecretKey: z.string(),
+  emailDelivery: z.enum(['disabled', 'direct', 'queue']),
+  attachmentsEnabled: z.boolean(),
+  s3Endpoint: z.string().url().optional(),
+  s3PublicEndpoint: z.string().url().optional(),
+  s3Region: z.string().optional(),
+  s3Bucket: z.string().optional(),
+  s3AccessKey: z.string().optional(),
+  s3SecretKey: z.string().optional(),
+}).superRefine((value, context) => {
+  if (value.emailDelivery === 'direct') {
+    for (const key of ['smtpHost', 'smtpPort', 'smtpFrom'] as const) {
+      if (!value[key]) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [key],
+          message: `${key} is required when EMAIL_DELIVERY=direct`,
+        })
+      }
+    }
+  }
+  if (!value.attachmentsEnabled) return
+  for (const key of ['s3Endpoint', 's3PublicEndpoint', 's3Region', 's3Bucket', 's3AccessKey', 's3SecretKey'] as const) {
+    if (!value[key]) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [key],
+        message: `${key} is required when ENABLE_ATTACHMENTS=true`,
+      })
+    }
+  }
 })
 
 export type AppConfig = z.infer<typeof schema>
@@ -68,9 +91,16 @@ export function loadConfig(): AppConfig {
     smtpUser: process.env.SMTP_USER,
     smtpPassword: secret('SMTP_PASSWORD'),
     redisUrl: secret('REDIS_URL'),
-    emailDelivery: process.env.EMAIL_DELIVERY === 'queue' ? 'queue' : 'direct',
-    s3Endpoint: process.env.S3_ENDPOINT ?? 'http://localhost:9000',
-    s3PublicEndpoint: process.env.S3_PUBLIC_ENDPOINT ?? process.env.S3_ENDPOINT ?? 'http://localhost:9000',
+    emailDelivery: process.env.EMAIL_DELIVERY === 'queue'
+      ? 'queue'
+      : process.env.EMAIL_DELIVERY === 'disabled'
+        ? 'disabled'
+        : 'direct',
+    attachmentsEnabled: process.env.ENABLE_ATTACHMENTS === undefined
+      ? !isProduction
+      : process.env.ENABLE_ATTACHMENTS === 'true',
+    s3Endpoint: process.env.S3_ENDPOINT ?? (isProduction ? undefined : 'http://localhost:9000'),
+    s3PublicEndpoint: process.env.S3_PUBLIC_ENDPOINT ?? process.env.S3_ENDPOINT ?? (isProduction ? undefined : 'http://localhost:9000'),
     s3Region: process.env.S3_REGION ?? 'us-east-1',
     s3Bucket: process.env.S3_BUCKET ?? 'ciphervault-attachments',
     s3AccessKey: secret('S3_ACCESS_KEY', isProduction ? undefined : 'ciphervault'),
