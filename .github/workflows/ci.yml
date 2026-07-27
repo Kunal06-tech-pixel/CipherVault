@@ -110,13 +110,16 @@ jobs:
       - name: Wait for API health
         run: |
           for i in $(seq 1 40); do
-            if curl -sf http://localhost:3001/health/ready > /dev/null 2>&1; then
+            if curl -sf http://localhost:8080/health/ready > /dev/null 2>&1; then
               echo "API is ready"
-              break
+              exit 0
             fi
             echo "Waiting for API... ($i/40)"
             sleep 3
           done
+          echo "Timed out waiting for API"
+          docker compose -f infra/docker-compose.yml logs --no-color
+          exit 1
       - run: npm run test:compose
       - run: npm run backup:compose -- ci-backup
       - run: npm run restore:drill -- ci-backup

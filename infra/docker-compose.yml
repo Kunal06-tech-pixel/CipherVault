@@ -44,6 +44,7 @@ services:
       PORT: 3001
       PUBLIC_ORIGIN: http://localhost:8080
       COOKIE_SECURE: "false"
+      ENABLE_ATTACHMENTS: "true"
       DATABASE_URL_FILE: /run/secrets/database_url
       AUTH_PEPPER_FILE: /run/secrets/auth_pepper
       PRELOGIN_SECRET_FILE: /run/secrets/prelogin_secret
