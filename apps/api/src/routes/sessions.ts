@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { deleteAccountRequestSchema } from '@ciphervault/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
+import { browserSessionSameSite } from '../cookies'
 
 export function registerSessionRoutes(app: FastifyInstance, context: ApiContext): void {
   const { database, config, sessionCookie } = context
@@ -18,7 +19,7 @@ export function registerSessionRoutes(app: FastifyInstance, context: ApiContext)
     const id = (request.params as { id: string }).id
     await database.revokeSession(id, request.auth!.user.id)
     if (id === request.auth!.session.id) {
-      reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: 'strict' })
+      reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: browserSessionSameSite(config) })
     }
     return reply.code(204).send()
   })
@@ -36,7 +37,7 @@ export function registerSessionRoutes(app: FastifyInstance, context: ApiContext)
     await database.writeSecurityEvent(request.auth!.user.id, 'account_deletion_scheduled', {
       sessionId: request.auth!.session.id,
     })
-    reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: 'strict' })
+    reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: browserSessionSameSite(config) })
     reply.header('Clear-Site-Data', '"cache", "cookies", "storage"')
     return reply.code(202).send({ deletionScheduled: true, purgeAfterDays: 7 })
   })

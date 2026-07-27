@@ -58,6 +58,51 @@ function testDependencies(
 }
 
 describe('API request security', () => {
+  it('sets cross-site compatible secure session cookies for separate frontend and API origins', async () => {
+    const authKey = 'correct-client-derived-authentication-key-material'
+    const verifier = await hashAuthKey(authKey, config.authPepper)
+    const createSession = vi.fn(async () => ({
+      id: '10000000-0000-4000-8000-000000000001',
+      userId: '20000000-0000-4000-8000-000000000002',
+      csrfHash: 'unused',
+      deviceName: 'Test browser',
+      createdAt: new Date(),
+      lastSeenAt: new Date(),
+      expiresAt: new Date(Date.now() + 60_000),
+      reauthenticatedAt: null,
+    }))
+    const dependencies = testDependencies(vi.fn(async () => null), {
+      findUserByEmail: vi.fn(async () => ({
+        id: '20000000-0000-4000-8000-000000000002',
+        email: 'person@example.com',
+        emailVerifiedAt: null,
+        authVerifierHash: verifier,
+        kdf: wrappedVaultKey.kdf,
+        kdfSalt: wrappedVaultKey.salt,
+        wrappedVaultKey,
+        recoveryWrappedVaultKey: { cryptoVersion: 2 as const, nonce: 'D'.repeat(16), ciphertext: 'E'.repeat(43) },
+      })),
+      listMfaFactors: vi.fn(async () => []),
+      createSession,
+      writeSecurityEvent: vi.fn(async () => undefined),
+    })
+    const app = await buildApp({ ...config, allowUnverifiedLogin: true }, dependencies)
+    try {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/v1/auth/login',
+        headers: { origin: config.publicOrigin },
+        payload: { email: 'person@example.com', authKey, deviceName: 'Test browser' },
+      })
+      expect(response.statusCode).toBe(200)
+      expect(response.headers['set-cookie']).toEqual(expect.stringContaining('SameSite=None'))
+      expect(response.headers['set-cookie']).toEqual(expect.stringContaining('Secure'))
+      expect(createSession).toHaveBeenCalledOnce()
+    } finally {
+      await app.close()
+    }
+  })
+
   it('reports ready without object storage when attachments are disabled', async () => {
     const ping = vi.fn(async () => undefined)
     const diagnostics = vi.fn(async () => ({ mode: 'disabled' as const, waiting: 0, failed: 0 }))

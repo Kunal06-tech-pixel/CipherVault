@@ -3,6 +3,7 @@ import type { StoredUser } from './database'
 import type { ApiContext } from './api-context'
 import { clientIpHash } from './request-policy'
 import { opaqueToken, sha256 } from './security'
+import { browserSessionSameSite } from './cookies'
 
 export async function issueBrowserSession(
   context: ApiContext,
@@ -20,7 +21,11 @@ export async function issueBrowserSession(
     deviceName,
   )
   reply.setCookie(context.sessionCookie, sessionToken, {
-    path: '/', httpOnly: true, secure: context.config.cookieSecure, sameSite: 'strict', maxAge: 12 * 60 * 60,
+    path: '/',
+    httpOnly: true,
+    secure: context.config.cookieSecure,
+    sameSite: browserSessionSameSite(context.config),
+    maxAge: 12 * 60 * 60,
   })
   await context.database.writeSecurityEvent(user.id, 'login_succeeded', {
     sessionId: session.id,

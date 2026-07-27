@@ -13,6 +13,7 @@ import { clientIpHash } from '../request-policy'
 import { fakePreloginSalt, hashAuthKey, opaqueToken, sha256, verifyAuthKey } from '../security'
 import { issueBrowserSession } from '../session-service'
 import { decryptMfaSecret, verifyTotp, type SecretEnvelope } from '../mfa-security'
+import { browserSessionSameSite } from '../cookies'
 
 export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): void {
   const { config, database, email, sessionCookie } = context
@@ -151,7 +152,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
 
   app.post('/v1/auth/logout', async (request, reply) => {
     if (request.auth) await database.revokeSession(request.auth.session.id, request.auth.user.id)
-    reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: 'strict' })
+    reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: browserSessionSameSite(config) })
     reply.header('Clear-Site-Data', '"cache", "cookies"')
     return reply.code(204).send()
   })
