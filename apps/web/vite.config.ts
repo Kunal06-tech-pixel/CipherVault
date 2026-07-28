@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export const productionCsp = [
   "default-src 'self'",
-  "script-src 'self' 'wasm-unsafe-eval'",
+  // hash-wasm's Argon2 path compiles embedded WASM in the crypto worker.
+  // Some browsers still gate that behind unsafe-eval despite wasm-unsafe-eval.
+  "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'",
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
@@ -19,7 +21,7 @@ export const productionCsp = [
 // This relaxation is never emitted by the production build or preview server.
 export const developmentCsp = productionCsp
   .replace(
-    "script-src 'self' 'wasm-unsafe-eval'",
+    "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'",
     "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'",
   )
   .replace(

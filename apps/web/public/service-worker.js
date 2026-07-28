@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ciphervault-static-v2-beta2'
+const CACHE_NAME = 'ciphervault-static-v2-beta3'
 const SHELL_URLS = ['/', '/manifest.webmanifest?v=gold-20260726', '/icon.svg?v=gold-20260726']
 
 function isCacheableStaticRequest(request) {
@@ -47,10 +47,22 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith((async () => {
-    const cached = await caches.match(request)
+    const cache = await caches.open(CACHE_NAME)
+    const cached = await cache.match(request)
+
+    if (['script', 'worker', 'style'].includes(request.destination)) {
+      try {
+        const response = await fetch(request, { cache: 'no-store' })
+        if (response.ok && response.type === 'basic') await cache.put(request, response.clone())
+        return response
+      } catch {
+        return cached ?? Response.error()
+      }
+    }
+
     if (cached) return cached
     const response = await fetch(request)
-    if (response.ok && response.type === 'basic') await (await caches.open(CACHE_NAME)).put(request, response.clone())
+    if (response.ok && response.type === 'basic') await cache.put(request, response.clone())
     return response
   })())
 })
