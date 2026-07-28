@@ -13,7 +13,16 @@
 .production-shell .topbar .logo { width: 220px; }
 .heading-actions { display: flex; gap: 8px; }
 .production-list { min-height: 410px; }
-.production-row { width: 100%; min-height: 67px; padding: 8px 16px; display: grid; grid-template-columns: 45px minmax(160px,1fr) minmax(120px,.8fr) 100px 30px 30px; align-items: center; border: 0; border-bottom: 1px solid #edf0f4; background: #fff; cursor: pointer; text-align: left; }
+@keyframes prod-entry-in { from { opacity: 0; transform: translateY(5px); } }
+.production-row { width: 100%; min-height: 67px; padding: 8px 16px; display: grid; grid-template-columns: 45px minmax(160px,1fr) minmax(120px,.8fr) 100px 30px 30px; align-items: center; border: 0; border-bottom: 1px solid #edf0f4; background: #fff; cursor: pointer; text-align: left; animation: prod-entry-in 260ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)) both; }
+.production-row:nth-child(1) { animation-delay: 0ms; }
+.production-row:nth-child(2) { animation-delay: 35ms; }
+.production-row:nth-child(3) { animation-delay: 70ms; }
+.production-row:nth-child(4) { animation-delay: 105ms; }
+.production-row:nth-child(5) { animation-delay: 140ms; }
+.production-row:nth-child(6) { animation-delay: 175ms; }
+.production-row:nth-child(7) { animation-delay: 210ms; }
+.production-row:nth-child(8) { animation-delay: 245ms; }
 .production-row:hover { background: #fafbfe; }
 .production-row.selected { background: #f1f4ff; box-shadow: inset 3px 0 #5572e2; }
 .production-row .site-avatar { grid-column: 1; grid-row: 1; color: #5572e2; background: #edf0ff; }
@@ -147,8 +156,9 @@
 .score-ring { position: absolute; right: 17px; top: 38px; width: 58px; height: 58px; }
 .score-ring::before, .health-donut::before { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: #fff; }
 .score-ring svg { position: relative; z-index: 1; color: #009b68; }
-.dashboard-card button { margin-top: 17px; padding: 0; border: 0; color: #63746e; background: transparent; font-size: 8px; cursor: pointer; }
+.dashboard-card button { margin-top: 17px; padding: 0; border: 0; color: #63746e; background: transparent; font-size: 8px; cursor: pointer; transition: color 150ms ease, transform 140ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)); }
 .dashboard-card button:hover { color: #007c54; }
+.dashboard-card button:active { transform: scale(0.96); }
 .health-status-card > b { margin-top: 10px; font-size: 15px; }
 .health-status-card > svg { color: #f7e8df; }
 .dashboard-content-grid { margin-top: 15px; display: grid; grid-template-columns: 1.35fr 1.05fr 1.1fr; gap: 15px; align-items: stretch; }
@@ -165,8 +175,9 @@
 .recent-favorite { width: 28px; height: 28px; display: grid; place-items: center; border: 0; color: #9aa6a1; background: transparent; cursor: pointer; }
 .recent-favorite.active { color: #00a26e; }
 .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.category-grid button { min-height: 72px; padding: 11px; display: grid; grid-template-columns: 22px 1fr; grid-template-rows: auto auto; align-items: center; border: 1px solid #e5ece9; border-radius: 9px; color: #008f60; background: #fbfdfc; text-align: left; cursor: pointer; }
+.category-grid button { min-height: 72px; padding: 11px; display: grid; grid-template-columns: 22px 1fr; grid-template-rows: auto auto; align-items: center; border: 1px solid #e5ece9; border-radius: 9px; color: #008f60; background: #fbfdfc; text-align: left; cursor: pointer; transition: background 160ms ease, border-color 160ms ease, transform 140ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)); }
 .category-grid button:hover { border-color: #afd9c8; background: #f0faf6; }
+.category-grid button:active { transform: scale(0.97); }
 .category-grid b { color: #374740; font-size: 9px; }.category-grid small { grid-column: 2; color: #82908b; font-size: 8px; }
 .health-chart-row { margin-top: 9px; display: flex; align-items: center; gap: 19px; }
 .health-donut { width: 104px; height: 104px; flex: none; }
