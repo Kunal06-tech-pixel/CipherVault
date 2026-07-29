@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 const masterPassword = 'a-secure-test-password-123'
+const mailpitOrigin = process.env.CV_MAILPIT_ORIGIN ?? 'http://localhost:8025'
 const selectableTypes = [
   { label: 'Login Credential', field: 'Username or email' },
   { label: 'Payment Card', field: 'Cardholder name' },
@@ -14,16 +15,69 @@ const selectableTypes = [
   { label: 'Custom Secret', field: 'Custom fields' },
 ]
 
+function messageId(message: unknown): string | undefined {
+  if (!message || typeof message !== 'object') return undefined
+  const candidate = message as Record<string, unknown>
+  const id = candidate.ID ?? candidate.Id ?? candidate.id
+  return typeof id === 'string' ? id : undefined
+}
+
+function messagesFromResponse(payload: unknown): unknown[] {
+  if (!payload || typeof payload !== 'object') return []
+  const candidate = payload as Record<string, unknown>
+  if (Array.isArray(candidate.messages)) return candidate.messages
+  if (Array.isArray(candidate.Messages)) return candidate.Messages
+  if (Array.isArray(candidate.data)) return candidate.data
+  return []
+}
+
+function verificationTokenFromPayload(payload: unknown, email: string): string | undefined {
+  const text = JSON.stringify(payload)
+  if (!text.includes(email)) return undefined
+  return /\/verify-email\?token=([A-Za-z0-9_-]+)/u.exec(text)?.[1]
+}
+
+async function waitForVerificationToken(page: Page, email: string): Promise<string> {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const listResponse = await page.request.get(`${mailpitOrigin}/api/v1/messages`).catch(() => null)
+    if (listResponse?.ok()) {
+      const listPayload = await listResponse.json()
+      for (const message of messagesFromResponse(listPayload)) {
+        const id = messageId(message)
+        const detailResponse = id ? await page.request.get(`${mailpitOrigin}/api/v1/message/${encodeURIComponent(id)}`).catch(() => null) : null
+        const token = verificationTokenFromPayload(detailResponse?.ok() ? await detailResponse.json() : message, email)
+        if (token) return token
+      }
+    }
+    await page.waitForTimeout(1000)
+  }
+  throw new Error(`Verification email for ${email} did not arrive in Mailpit at ${mailpitOrigin}.`)
+}
+
 async function registerVault(page: Page, suffix: string) {
+  const email = `playwright-${suffix}-${Date.now()}@example.invalid`
   await page.goto('/app?mode=register')
-  await page.getByLabel('Email address').fill(`playwright-${suffix}-${Date.now()}@example.invalid`)
+  await page.getByLabel('Email address').fill(email)
   await page.getByLabel('Master password', { exact: true }).fill(masterPassword)
   await page.getByLabel('Confirm master password').fill(masterPassword)
   await page.getByRole('button', { name: /create zero-knowledge account/i }).click()
   await expect(page.getByRole('dialog', { name: /save this key offline/i })).toBeVisible()
   await page.locator('label.recovery-confirm').click()
   await page.getByRole('button', { name: /continue to my vault/i }).click()
-  await expect(page.getByRole('heading', { name: /all items/i })).toBeVisible()
+  const vaultHeading = page.getByRole('heading', { name: /all items/i })
+  try {
+    await expect(vaultHeading).toBeVisible({ timeout: 3_000 })
+    return
+  } catch {
+    await expect(page.getByText(/check your email to verify the account/i)).toBeVisible()
+  }
+  const token = await waitForVerificationToken(page, email)
+  await page.goto(`/verify-email?token=${encodeURIComponent(token)}`)
+  await expect(page.getByText(/email verified/i)).toBeVisible()
+  await page.getByLabel('Email address').fill(email)
+  await page.getByLabel('Master password', { exact: true }).fill(masterPassword)
+  await page.getByRole('button', { name: /unlock vault/i }).click()
+  await expect(vaultHeading).toBeVisible()
 }
 
 async function openAddItem(page: Page) {
