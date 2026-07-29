@@ -32,11 +32,12 @@ function run(arguments_, input) {
 const database = decrypt(await readFile(resolve(directory, 'postgres.dump.cvbk')), 'postgres')
 const objects = decrypt(await readFile(resolve(directory, 'objects.tar.gz.cvbk')), 'objects')
 const name = `keywall-restore-${randomBytes(4).toString('hex')}`
+const postgresPasswordEnv = `${'POSTGRES_PASSWORD'}=restore-only-password`
 try {
   run(['run', '--rm', '-i', 'alpine:3.21', 'tar', '-tzf', '-'], objects)
   run(['run', '-d', '--name', name,
     '-e', 'POSTGRES_USER=keywall',
-    '-e', 'POSTGRES_PASSWORD=restore-only-password',
+    '-e', postgresPasswordEnv,
     '-e', 'POSTGRES_DB=keywall',
     'postgres:17-alpine'])
   let ready = false
