@@ -1,4 +1,4 @@
-import type { CustomField, RecoveryCodeItem, VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { CustomField, RecoveryCodeItem, VaultItem, VaultItemType } from '@keywall/contracts'
 import { legacyTypeAliases } from './item-types'
 import { initialFieldsFor } from './vault-item-templates'
 

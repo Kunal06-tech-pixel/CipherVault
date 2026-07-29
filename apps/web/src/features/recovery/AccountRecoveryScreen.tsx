@@ -38,7 +38,7 @@ export function AccountRecoveryScreen({ onRecovered }: { onRecovered: (email: st
         await completeRecovery({ token, authKey: recovered.authKey, wrappedVaultKey: recovered.wrappedVaultKey, ...(mfaCode ? { mfaCode: mfaCode.trim().toUpperCase() } : {}) })
         const session = await login({ email: challenge.email, authKey: recovered.authKey, deviceName: navigator.userAgent.slice(0, 100) })
         if ('mfaRequired' in session) throw new Error('Recovery succeeded. Sign in again with your MFA factor.')
-        history.replaceState({}, '', '/')
+        history.replaceState({}, '', '/app')
         onRecovered(challenge.email)
       }
     } catch (cause) {
@@ -67,7 +67,7 @@ export function AccountRecoveryScreen({ onRecovered }: { onRecovered: (email: st
         {error && <p className="form-error">{error}</p>}
         <button className="primary-button full" disabled={busy}>{busy ? 'Verifying recovery material...' : token ? 'Recover and revoke old sessions' : 'Send recovery link'}</button>
       </form>
-      <a className="forgot-link" href="/">Return to sign in</a>
+      <a className="forgot-link" href="/app">Return to sign in</a>
     </section>
   </main>
 }

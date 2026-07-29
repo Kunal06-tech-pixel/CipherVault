@@ -20,4 +20,4 @@ backup_key.txt
 minio_password.txt
 ```
 
-`database_url.txt` contains `postgres://ciphervault:<password>@postgres:5432/ciphervault` with the password URL-encoded. Never commit these files.
+`database_url.txt` contains `postgres://keywall:<password>@postgres:5432/keywall` with the password URL-encoded. Never commit these files.

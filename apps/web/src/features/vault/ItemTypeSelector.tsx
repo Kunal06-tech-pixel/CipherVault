@@ -1,4 +1,4 @@
-import type { VaultItemType } from '@ciphervault/contracts'
+import type { VaultItemType } from '@keywall/contracts'
 import { selectableTemplates } from './vault-item-templates'
 
 export function ItemTypeSelector({ onSelect }: { onSelect: (type: VaultItemType) => void }) {

@@ -1,4 +1,4 @@
-import type { VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { VaultItem, VaultItemType } from '@keywall/contracts'
 import { selectableVaultItemTypes, typeIcons, typeLabels } from './item-types'
 
 export type FieldKind = 'text' | 'secret' | 'textarea' | 'url' | 'email' | 'date' | 'month' | 'select' | 'checkbox' | 'recoveryCodes' | 'customFields'

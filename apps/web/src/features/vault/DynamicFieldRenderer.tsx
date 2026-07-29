@@ -1,4 +1,4 @@
-import type { CustomField, RecoveryCodeItem } from '@ciphervault/contracts'
+import type { CustomField, RecoveryCodeItem } from '@keywall/contracts'
 import type { FieldTemplate } from './vault-item-templates'
 import { formatCardNumber } from './vault-item-validation'
 import { SecretInput } from './SecretInput'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 import { passwordHealth } from './health'
 
 const item = (id: string, password: string): VaultItem => ({

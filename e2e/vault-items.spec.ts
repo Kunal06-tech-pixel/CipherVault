@@ -15,8 +15,7 @@ const selectableTypes = [
 ]
 
 async function registerVault(page: Page, suffix: string) {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Create account' }).click()
+  await page.goto('/app?mode=register')
   await page.getByLabel('Email address').fill(`playwright-${suffix}-${Date.now()}@example.invalid`)
   await page.getByLabel('Master password', { exact: true }).fill(masterPassword)
   await page.getByLabel('Confirm master password').fill(masterPassword)
@@ -36,7 +35,7 @@ function itemEditor(page: Page) {
   return page.getByRole('dialog', { name: /add secure item|new vault item|select item type|custom secret|payment card|login credential|bank account|secure note|recovery codes|api secret|wi-fi credential|identity document|software licence/i })
 }
 
-test.describe('CipherVault vault item refinement', () => {
+test.describe('Keywall vault item refinement', () => {
   test('selects every new item type before showing the dynamic form', async ({ page }) => {
     await registerVault(page, 'types')
     await openAddItem(page)
@@ -91,7 +90,7 @@ test.describe('CipherVault vault item refinement', () => {
   })
 })
 
-test.describe('CipherVault responsive add-item modal', () => {
+test.describe('Keywall responsive add-item modal', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
   test('keeps the type selector usable on mobile', async ({ page }) => {

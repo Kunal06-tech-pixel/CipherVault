@@ -1,4 +1,4 @@
-# CipherVault Deployment Roadmap
+# Keywall Deployment Roadmap
 
 Status: private beta deployment ready after backend hosting is selected. Public password-manager launch remains blocked by the release gates in `docs/RELEASE_GAPS.md`.
 
@@ -26,7 +26,7 @@ npm audit --audit-level=high
 
 Use Netlify only for the browser application:
 
-- Build command: `npm run build -w @ciphervault/web`
+- Build command: `npm run build -w @keywall/web`
 - Publish directory: `apps/web/dist`
 - Node version: `22`
 
@@ -97,14 +97,14 @@ Exit criteria:
 
 - Choose the backend host.
 - Provision PostgreSQL, Redis/Valkey, S3-compatible storage, and SMTP.
-- Deploy API with `npm run build -w @ciphervault/api` and `npm run start -w @ciphervault/api`, or use `infra/docker/api.Dockerfile`.
+- Deploy API with `npm run build -w @keywall/api` and `npm run start -w @keywall/api`, or use `infra/docker/api.Dockerfile`.
 - Run migrations before opening traffic:
 
 ```bash
-npm run db:migrate -w @ciphervault/api
+npm run db:migrate -w @keywall/api
 ```
 
-- Deploy worker with `infra/docker/worker.Dockerfile` or `npm run start -w @ciphervault/worker` after build.
+- Deploy worker with `infra/docker/worker.Dockerfile` or `npm run start -w @keywall/worker` after build.
 - Verify API health:
 
 ```text

@@ -38,7 +38,7 @@ export async function loadMigrationFiles(directoryUrl: URL): Promise<MigrationFi
 
 export async function runMigrations(sql: Sql, migrations: readonly MigrationFile[]): Promise<string[]> {
   return sql.begin(async (transaction) => {
-    await transaction`select pg_advisory_xact_lock(hashtext('ciphervault:schema-migrations'))`
+    await transaction`select pg_advisory_xact_lock(hashtext('keywall:schema-migrations'))`
     await transaction`
       create table if not exists schema_migrations (
         version text primary key,

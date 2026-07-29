@@ -1,4 +1,4 @@
-import type { VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { VaultItem, VaultItemType } from '@keywall/contracts'
 import type { passwordHealth } from '../../health'
 import { dashboardTypeOrder } from './item-types'
 

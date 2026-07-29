@@ -5,11 +5,11 @@ export function RecoveryDialog({ recoveryKey, onDone }: { recoveryKey: string; o
   const [confirmed, setConfirmed] = useState(false)
   const download = () => {
     const blob = new Blob([
-      `CipherVault Recovery Kit\n\nRecovery key: ${recoveryKey}\n\nKeep this file offline. CipherVault cannot recover this key for you.\n`,
+      `Keywall Recovery Kit\n\nRecovery key: ${recoveryKey}\n\nKeep this file offline. Keywall cannot recover this key for you.\n`,
     ], { type: 'text/plain' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = 'ciphervault-recovery-kit.txt'
+    link.download = 'keywall-recovery-kit.txt'
     link.click()
     URL.revokeObjectURL(link.href)
   }

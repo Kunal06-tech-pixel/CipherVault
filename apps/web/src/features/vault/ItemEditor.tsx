@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ArrowLeft, X } from 'lucide-react'
-import type { VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { VaultItem, VaultItemType } from '@keywall/contracts'
 import { typeLabels } from './item-types'
 import { ItemTypeSelector } from './ItemTypeSelector'
 import { formStateFromItem, VaultItemForm } from './VaultItemForm'

@@ -1,4 +1,4 @@
-import { encryptedItemSchema, vaultItemSchema, type EncryptedItem, type VaultItem, type VaultItemType } from '@ciphervault/contracts'
+import { encryptedItemSchema, vaultItemSchema, type EncryptedItem, type VaultItem, type VaultItemType } from '@keywall/contracts'
 import { normalizeVaultItem } from '../vault/vault-item-normalize'
 
 export type VaultImport =
@@ -89,10 +89,10 @@ export function parseVaultImport(filename: string, source: string): VaultImport 
   }
   const envelope = parsed as { format?: unknown; items?: unknown }
   if (!Array.isArray(envelope.items)) throw new Error('The import file does not contain an items array.')
-  if (envelope.format === 'ciphervault-encrypted-items') {
+  if (envelope.format === 'keywall-encrypted-items') {
     return { kind: 'encrypted', items: envelope.items.map((item) => encryptedItemSchema.parse(item)) }
   }
-  if (envelope.format === 'ciphervault-plaintext') {
+  if (envelope.format === 'keywall-plaintext') {
     const now = new Date().toISOString()
     return {
       kind: 'plaintext',
@@ -104,5 +104,5 @@ export function parseVaultImport(filename: string, source: string): VaultImport 
       }))),
     }
   }
-  throw new Error('Unsupported CipherVault import format.')
+  throw new Error('Unsupported Keywall import format.')
 }

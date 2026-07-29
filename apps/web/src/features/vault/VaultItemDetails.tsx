@@ -1,4 +1,4 @@
-import type { CustomField, RecoveryCodeItem, VaultItem } from '@ciphervault/contracts'
+import type { CustomField, RecoveryCodeItem, VaultItem } from '@keywall/contracts'
 import { Paperclip, Settings, Trash2, X } from 'lucide-react'
 import { TotpCode } from '../totp/TotpCode'
 import { typeIcons, typeLabels } from './item-types'

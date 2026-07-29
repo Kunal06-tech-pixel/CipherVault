@@ -1,4 +1,4 @@
-import type { EncryptedItem } from '@ciphervault/contracts'
+import type { EncryptedItem } from '@keywall/contracts'
 
 const DATABASE_NAME = 'ciphervault-encrypted-cache-v2'
 const DATABASE_VERSION = 1

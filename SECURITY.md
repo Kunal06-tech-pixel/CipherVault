@@ -8,7 +8,7 @@ Operators should acknowledge reports within two business days, triage within fiv
 
 ## Release gate
 
-CipherVault must not be presented as generally available until all of these are complete:
+Keywall must not be presented as generally available until all of these are complete:
 
 - Independent review of the key hierarchy, recovery flow, extension boundary, sync conflict handling, and cryptographic implementation.
 - Authenticated and unauthenticated penetration testing of web, API, extension, containers, and deployment configuration.

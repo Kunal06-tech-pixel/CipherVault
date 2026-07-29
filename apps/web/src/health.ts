@@ -1,4 +1,4 @@
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 
 export function passwordHealth(items: VaultItem[]): { total: number; strong: number; weak: number; reused: number } {
   const passwords = items.filter((item) => item.type === 'login').map((item) => String(item.fields.password ?? '')).filter(Boolean)

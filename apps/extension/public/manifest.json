@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "CipherVault",
+  "name": "Keywall",
   "version": "2.0.0",
-  "description": "Zero-knowledge password autofill for CipherVault.",
+  "description": "Zero-knowledge password autofill for Keywall.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "CipherVault"
+    "default_title": "Keywall"
   },
   "background": {
     "service_worker": "background.js",
@@ -21,9 +21,9 @@
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; base-uri 'none'"
   },
   "commands": {
-    "open-ciphervault": {
+    "open-keywall": {
       "suggested_key": { "default": "Ctrl+Shift+L", "mac": "Command+Shift+L" },
-      "description": "Open CipherVault"
+      "description": "Open Keywall"
     }
   }
 }

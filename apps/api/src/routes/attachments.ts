@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { attachmentCompleteSchema, attachmentInitiateSchema } from '@ciphervault/contracts'
+import { attachmentCompleteSchema, attachmentInitiateSchema } from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 
 export function registerAttachmentRoutes(app: FastifyInstance, context: ApiContext): void {

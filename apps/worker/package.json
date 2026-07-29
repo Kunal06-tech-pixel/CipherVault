@@ -1,5 +1,5 @@
 {
-  "name": "@ciphervault/worker",
+  "name": "@keywall/worker",
   "version": "2.0.0-beta.1",
   "private": true,
   "type": "module",
@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@keywall/brand": "*",
     "@aws-sdk/client-s3": "^3.772.0",
     "bullmq": "^5.41.9",
     "emailjs": "^5.0.2",

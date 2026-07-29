@@ -1,4 +1,4 @@
-# CipherVault threat model
+# Keywall threat model
 
 ## Protected assets
 
@@ -26,4 +26,4 @@ Vault plaintext, master passwords, vault/recovery keys, authentication material,
 
 ## Explicit non-goals
 
-CipherVault cannot protect secrets displayed on a device already controlled by malware, keyloggers, hostile browser extensions, or a compromised operating system. It does not hide account email, ciphertext size, access time, device labels, or item counts from the service operator.
+Keywall cannot protect secrets displayed on a device already controlled by malware, keyloggers, hostile browser extensions, or a compromised operating system. It does not hide account email, ciphertext size, access time, device labels, or item counts from the service operator.

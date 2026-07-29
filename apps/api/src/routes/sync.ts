@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { batchSyncRequestSchema } from '@ciphervault/contracts'
+import { batchSyncRequestSchema } from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 
 export function registerSyncRoutes(app: FastifyInstance, { database }: ApiContext): void {

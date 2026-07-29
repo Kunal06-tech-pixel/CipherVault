@@ -1,6 +1,6 @@
-# CipherVault Production Beta
+# Keywall Production Beta
 
-CipherVault is a zero-knowledge, multi-user password manager. Vault data is encrypted on the client before it reaches the API; PostgreSQL, Valkey, object storage, logs, and backups never receive plaintext vault fields or user vault keys.
+Keywall is a zero-knowledge, multi-user password manager. Vault data is encrypted on the client before it reaches the API; PostgreSQL, Valkey, object storage, logs, and backups never receive plaintext vault fields or user vault keys.
 
 > Production beta means the architecture and deployment controls are production-shaped, but public general availability is blocked on an independent cryptographic design review and penetration test. See [SECURITY.md](SECURITY.md).
 
@@ -57,7 +57,7 @@ production-like infrastructure stack.
 4. Build the browser extension, then load `apps/extension/dist` as an unpacked extension:
 
    ```bash
-   npm run build -w @ciphervault/extension
+   npm run build -w @keywall/extension
    ```
 
 Set `VITE_EXTENSION_ID` when building the web app to enable the externally-connectable memory bridge. Replace the example production domain in the extension manifest before store submission.

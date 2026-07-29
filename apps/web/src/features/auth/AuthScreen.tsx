@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Check, Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck, User } from 'lucide-react'
-import type { SyncMutation } from '@ciphervault/contracts'
+import { brand } from '@keywall/brand'
+import type { SyncMutation } from '@keywall/contracts'
 import { ApiError, login, prelogin, pushMutations, registerAccount, verifyEmail, type MfaLoginChallenge } from '../../api'
 import { vaultCrypto } from '../../crypto-client'
 import { readableError } from '../../errors'
@@ -11,8 +12,8 @@ import { MfaChallenge } from './MfaChallenge'
 
 type AuthMode = 'login' | 'register'
 
-export function AuthScreen({ onUnlock }: { onUnlock: (email: string, recoveryKey?: string) => void }) {
-  const [mode, setMode] = useState<AuthMode>('login')
+export function AuthScreen({ initialMode = 'login', onUnlock }: { initialMode?: AuthMode; onUnlock: (email: string, recoveryKey?: string) => void }) {
+  const [mode, setMode] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [masterPassword, setMasterPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -29,7 +30,7 @@ export function AuthScreen({ onUnlock }: { onUnlock: (email: string, recoveryKey
     setBusy(true)
     verifyEmail(token).then(() => {
       setVerification('Email verified. You can now unlock your vault.')
-      history.replaceState({}, '', '/')
+      history.replaceState({}, '', '/app')
     }).catch((cause) => setError(readableError(cause))).finally(() => setBusy(false))
   }, [])
 
@@ -119,7 +120,7 @@ export function AuthScreen({ onUnlock }: { onUnlock: (email: string, recoveryKey
     <section className="auth-card production-auth-card">
       <div className="auth-icon">{mode === 'register' ? <ShieldCheck size={25} /> : <LockKeyhole size={25} />}</div>
       <p className="eyebrow">Zero-knowledge security</p>
-      <h1>{mode === 'register' ? 'Create your encrypted vault' : 'Unlock CipherVault'}</h1>
+      <h1>{mode === 'register' ? 'Create your encrypted vault' : `Unlock ${brand.productName}`}</h1>
       <p className="auth-copy">{mode === 'register' ? 'Your master password creates keys on this device. We never receive it or your vault key.' : 'Authenticate and decrypt your synchronized vault on this device.'}</p>
       <div className="auth-tabs" role="tablist">
         <button className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError('') }}>Sign in</button>

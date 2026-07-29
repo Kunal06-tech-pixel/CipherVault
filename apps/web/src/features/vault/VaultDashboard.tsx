@@ -1,5 +1,5 @@
 import { Archive, HeartPulse, KeyRound, Layers3, ShieldCheck, Star } from 'lucide-react'
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 import * as React from 'react'
 import type { passwordHealth } from '../../health'
 import { dashboardTypeOrder, typeIcons, typeLabels } from './item-types'

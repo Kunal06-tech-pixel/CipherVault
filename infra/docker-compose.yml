@@ -1,4 +1,4 @@
-name: ciphervault
+name: keywall
 
 services:
   caddy:
@@ -27,7 +27,7 @@ services:
     restart: "no"
 
   api:
-    image: ciphervault-api:ci
+    image: keywall-api:ci
     build:
       context: ..
       dockerfile: infra/docker/api.Dockerfile
@@ -53,12 +53,12 @@ services:
       EMAIL_DELIVERY: queue
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
-      SMTP_FROM: security@ciphervault.local
+      SMTP_FROM: security@keywall.local
       S3_ENDPOINT: http://minio:9000
       S3_PUBLIC_ENDPOINT: http://localhost:9000
       S3_REGION: us-east-1
-      S3_BUCKET: ciphervault-attachments
-      S3_ACCESS_KEY: ciphervault
+      S3_BUCKET: keywall-attachments
+      S3_ACCESS_KEY: keywall
       S3_SECRET_KEY_FILE: /run/secrets/minio_password
     secrets: [database_url, auth_pepper, prelogin_secret, mfa_encryption_key, minio_password]
     depends_on:
@@ -91,11 +91,11 @@ services:
       REDIS_URL: redis://valkey:6379
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
-      SMTP_FROM: security@ciphervault.local
+      SMTP_FROM: security@keywall.local
       S3_ENDPOINT: http://minio:9000
       S3_REGION: us-east-1
-      S3_BUCKET: ciphervault-attachments
-      S3_ACCESS_KEY: ciphervault
+      S3_BUCKET: keywall-attachments
+      S3_ACCESS_KEY: keywall
       S3_SECRET_KEY_FILE: /run/secrets/minio_password
     secrets: [database_url, minio_password]
     depends_on:
@@ -127,14 +127,14 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ciphervault
-      POSTGRES_USER: ciphervault
+      POSTGRES_DB: keywall
+      POSTGRES_USER: keywall
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     secrets: [postgres_password]
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ciphervault -d ciphervault && psql -U ciphervault -d ciphervault -c 'SELECT 1'"]
+      test: ["CMD-SHELL", "pg_isready -U keywall -d keywall && psql -U keywall -d keywall -c 'SELECT 1'"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -157,7 +157,7 @@ services:
     command: server /data --console-address :9001
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: ciphervault
+      MINIO_ROOT_USER: keywall
       MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_password
       MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:8080
     secrets: [minio_password]

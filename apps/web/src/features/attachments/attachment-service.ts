@@ -1,4 +1,4 @@
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 import { attachmentDownload, completeAttachment, deleteAttachment, initiateAttachment } from '../../api'
 import { vaultCrypto } from '../../crypto-client'
 

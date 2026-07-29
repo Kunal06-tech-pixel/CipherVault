@@ -1,4 +1,4 @@
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 import { normalizeVaultItem } from './features/vault/vault-item-normalize'
 
 const encoder = new TextEncoder()

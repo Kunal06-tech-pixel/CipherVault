@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { EncryptedItem, KdfParameters, VaultItem, WrappedVaultKey } from '@ciphervault/contracts'
+import type { EncryptedItem, KdfParameters, VaultItem, WrappedVaultKey } from '@keywall/contracts'
 import {
   createRecoveryKey,
   decodeRecoveryKey,
@@ -16,7 +16,7 @@ import {
   unwrapVaultKey,
   wrapVaultKey,
   zeroize,
-} from '@ciphervault/crypto'
+} from '@keywall/crypto'
 
 let vaultKey: Uint8Array | null = null
 let pendingWrappingKey: CryptoKey | null = null

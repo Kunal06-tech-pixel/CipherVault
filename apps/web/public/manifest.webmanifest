@@ -1,11 +1,11 @@
 {
-  "name": "CipherVault",
-  "short_name": "CipherVault",
+  "name": "Keywall",
+  "short_name": "Keywall",
   "description": "Zero-knowledge password manager",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
-  "background_color": "#f4f6f9",
-  "theme_color": "#111119",
+  "background_color": "#07110d",
+  "theme_color": "#101418",
   "icons": [
     {
       "src": "/icon.svg?v=gold-20260726",

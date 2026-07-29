@@ -1,4 +1,4 @@
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 
 export type ExtensionMessage =
   | { type: 'status' }

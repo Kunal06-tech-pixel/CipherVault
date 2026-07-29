@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { deleteAccountRequestSchema } from '@ciphervault/contracts'
+import { deleteAccountRequestSchema } from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 import { browserSessionSameSite } from '../cookies'
 

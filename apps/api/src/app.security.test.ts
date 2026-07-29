@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { WrappedVaultKey } from '@ciphervault/contracts'
+import type { WrappedVaultKey } from '@keywall/contracts'
 import { buildApp, type ApiDependencies } from './app'
 import type { AppConfig } from './config'
 import { hashAuthKey, sha256 } from './security'

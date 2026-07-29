@@ -1,5 +1,5 @@
 [build]
-  command = "node scripts/prepare-netlify-config.mjs && npm run build -w @ciphervault/web"
+  command = "node scripts/prepare-netlify-config.mjs && npm run build -w @keywall/web"
   publish = "apps/web/dist"
 
 [build.environment]
@@ -13,7 +13,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' CIPHERVAULT_CONNECT_SRC; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' KEYWALL_CONNECT_SRC; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
     Referrer-Policy = "no-referrer"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"

@@ -38,7 +38,7 @@ await ensureSecret('mfa_encryption_key', 32)
 await ensureSecret('backup_key', 32)
 await ensureSecret('minio_password')
 
-const expectedDatabaseUrl = `postgres://ciphervault:${encodeURIComponent(postgresPassword)}@postgres:5432/ciphervault`
+const expectedDatabaseUrl = `postgres://keywall:${encodeURIComponent(postgresPassword)}@postgres:5432/keywall`
 const existingDatabaseUrl = await readSecret('database_url')
 if (existingDatabaseUrl && existingDatabaseUrl !== expectedDatabaseUrl) {
   throw new Error('database_url.txt does not match postgres_password.txt. Reconcile them before starting Compose.')

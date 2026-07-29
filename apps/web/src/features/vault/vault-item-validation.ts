@@ -1,4 +1,4 @@
-import type { CustomField, RecoveryCodeItem, VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { CustomField, RecoveryCodeItem, VaultItem, VaultItemType } from '@keywall/contracts'
 import { itemTemplates } from './vault-item-templates'
 
 export const categories = ['Personal', 'Work', 'Finance', 'Other'] as const

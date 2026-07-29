@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { passwordRangeRequestSchema } from '@ciphervault/contracts'
+import { passwordRangeRequestSchema } from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 
 export function registerPasswordHealthRoutes(app: FastifyInstance, _context: ApiContext): void {
@@ -11,7 +11,7 @@ export function registerPasswordHealthRoutes(app: FastifyInstance, _context: Api
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     try {
       const response = await fetch(`https://api.pwnedpasswords.com/range/${parsed.data.prefix}`, {
-        headers: { 'user-agent': 'CipherVault-Password-Health/2', 'add-padding': 'true' },
+        headers: { 'user-agent': 'Keywall-Password-Health/2', 'add-padding': 'true' },
         signal: AbortSignal.timeout(8_000),
       })
       if (!response.ok) throw new Error('Password range provider rejected the request.')

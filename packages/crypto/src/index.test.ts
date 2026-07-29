@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { randomUUID } from 'node:crypto'
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 import {
   createRecoveryKey,
   decryptAttachmentChunk,
@@ -19,7 +19,7 @@ import {
 
 const testKdf = { algorithm: 'argon2id' as const, memoryKiB: 19_456, iterations: 2, parallelism: 1, hashLength: 32 as const }
 
-describe('CipherVault v2 cryptography', () => {
+describe('Keywall v2 cryptography', () => {
   it('derives independent authentication and wrapping material', async () => {
     const salt = randomBytes(16)
     const keys = await deriveMasterKeys('correct horse battery staple', salt, testKdf)

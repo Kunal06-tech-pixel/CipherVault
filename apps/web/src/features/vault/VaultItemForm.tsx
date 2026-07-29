@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import { Check, ShieldCheck } from 'lucide-react'
-import type { VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { VaultItem, VaultItemType } from '@keywall/contracts'
 import { categories, validateVaultItemInput } from './vault-item-validation'
 import { DynamicFieldRenderer } from './DynamicFieldRenderer'
 import { initialFieldsFor, itemTemplates } from './vault-item-templates'

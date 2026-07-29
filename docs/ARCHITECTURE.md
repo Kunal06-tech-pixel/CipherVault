@@ -1,4 +1,4 @@
-# CipherVault architecture
+# Keywall architecture
 
 ```text
 React PWA ── opaque HttpOnly session + CSRF ──> Fastify API ──> PostgreSQL

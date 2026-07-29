@@ -1,5 +1,5 @@
 import postgres, { type Sql } from 'postgres'
-import type { SyncMutation, WrappedVaultKey } from '@ciphervault/contracts'
+import type { SyncMutation, WrappedVaultKey } from '@keywall/contracts'
 import { AttachmentRepository } from './repositories/attachment-repository'
 import { SecurityEventRepository } from './repositories/security-event-repository'
 import { SessionRepository } from './repositories/session-repository'

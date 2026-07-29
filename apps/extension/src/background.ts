@@ -1,5 +1,5 @@
-import type { EncryptedItem, SyncPage, VaultItem } from '@ciphervault/contracts'
-import { decryptItem, fromBase64Url, randomBytes, toBase64Url, zeroize } from '@ciphervault/crypto'
+import type { EncryptedItem, SyncPage, VaultItem } from '@keywall/contracts'
+import { decryptItem, fromBase64Url, randomBytes, toBase64Url, zeroize } from '@keywall/crypto'
 import type { ExtensionMessage, ExtensionStatus } from './messages'
 import { deviceIdentity } from './device-identity'
 
@@ -173,5 +173,5 @@ chrome.runtime.onMessageExternal.addListener((message: ExtensionMessage, sender,
 })
 
 chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'open-ciphervault') await chrome.action.openPopup()
+  if (command === 'open-keywall') await chrome.action.openPopup()
 })

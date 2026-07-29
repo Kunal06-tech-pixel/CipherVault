@@ -7,7 +7,7 @@ import {
   recoveryStartRequestSchema,
   reauthenticateRequestSchema,
   registerRequestSchema,
-} from '@ciphervault/contracts'
+} from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 import { clientIpHash } from '../request-policy'
 import { fakePreloginSalt, hashAuthKey, opaqueToken, sha256, verifyAuthKey } from '../security'

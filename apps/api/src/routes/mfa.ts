@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { brand } from '@keywall/brand'
 import type { AuthenticationResponseJSON, RegistrationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server'
 import {
   generateAuthenticationOptions,
@@ -15,7 +16,7 @@ import {
   passkeyEnrollmentStartSchema,
   totpEnrollmentConfirmSchema,
   totpEnrollmentStartSchema,
-} from '@ciphervault/contracts'
+} from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 import {
   createTotpSecret,
@@ -85,7 +86,7 @@ export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): vo
     const factorId = await database.createTotpFactor(request.auth!.user.id, parsed.data.label, {
       envelope: encryptMfaSecret(secret, config.mfaEncryptionKey),
     })
-    const issuer = encodeURIComponent('CipherVault')
+    const issuer = encodeURIComponent(brand.productName)
     const account = encodeURIComponent(request.auth!.user.email)
     return { factorId, secret, otpauthUri: `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&digits=6&period=30` }
   })
@@ -118,7 +119,7 @@ export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): vo
     const passkeys = factors.filter((factor) => factor.kind === 'webauthn').map((factor) => factor.credential as unknown as PasskeyCredential)
     const { rpID } = relyingParty(config)
     const options = await generateRegistrationOptions({
-      rpName: 'CipherVault',
+      rpName: brand.productName,
       rpID,
       userID: isoUint8Array.fromUTF8String(request.auth!.user.id),
       userName: request.auth!.user.email,

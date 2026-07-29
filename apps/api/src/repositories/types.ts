@@ -1,4 +1,4 @@
-import type { EncryptedItem, KdfParameters, WrappedVaultKey } from '@ciphervault/contracts'
+import type { EncryptedItem, KdfParameters, WrappedVaultKey } from '@keywall/contracts'
 
 export interface StoredUser {
   id: string

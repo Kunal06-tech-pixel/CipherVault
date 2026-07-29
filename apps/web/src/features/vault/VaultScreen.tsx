@@ -4,7 +4,7 @@ import {
   LayoutDashboard, LockKeyhole, LogOut, Menu, MoreHorizontal, Plus, RefreshCw, Search,
   Settings, ShieldCheck, Star, Upload, X,
 } from 'lucide-react'
-import type { EncryptedItem, SyncMutation, VaultItem, VaultItemType } from '@ciphervault/contracts'
+import type { EncryptedItem, SyncMutation, VaultItem, VaultItemType } from '@keywall/contracts'
 import { approveExtensionGrant, createExtensionGrant, deleteAccount, deleteAttachment as deleteRemoteAttachment, fetchChanges, passwordRange, prelogin, pushMutations, reauthenticate } from '../../api'
 import { vaultCrypto } from '../../crypto-client'
 import { readableError } from '../../errors'
@@ -84,7 +84,7 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
     const pair = async () => {
       if (!window.confirm('Pair this browser extension with your encrypted vault? You can revoke it from the security dashboard.')) return
       const pairing = await requestExtensionPairing()
-      if (!pairing) throw new Error('The CipherVault extension did not respond. Ensure it is installed and the extension ID is configured.')
+      if (!pairing) throw new Error('The Keywall extension did not respond. Ensure it is installed and the extension ID is configured.')
       const { code } = await createExtensionGrant(pairing)
       const wrappedVaultKey = await vaultCrypto.wrapForExtension(pairing.devicePublicKey.wrapKey)
       await approveExtensionGrant(code, wrappedVaultKey)
@@ -200,8 +200,8 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
     URL.revokeObjectURL(link.href)
   }
   const exportEncrypted = () => downloadJson(
-    { format: 'ciphervault-encrypted-items', version: 2, exportedAt: new Date().toISOString(), items: encrypted },
-    `ciphervault-encrypted-${new Date().toISOString().slice(0, 10)}.json`,
+    { format: 'keywall-encrypted-items', version: 2, exportedAt: new Date().toISOString(), items: encrypted },
+    `keywall-encrypted-${new Date().toISOString().slice(0, 10)}.json`,
   )
   const exportPlaintext = async (masterPassword: string) => {
     if (!window.confirm('This export contains every decrypted vault secret. Anyone who obtains the file can read them. Continue?')) return
@@ -209,8 +209,8 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
     const derived = await vaultCrypto.deriveAuth(masterPassword, challenge.salt, challenge.kdf)
     await reauthenticate(derived.authKey)
     downloadJson(
-      { format: 'ciphervault-plaintext', version: 1, exportedAt: new Date().toISOString(), items },
-      `ciphervault-plaintext-${new Date().toISOString().slice(0, 10)}.json`,
+      { format: 'keywall-plaintext', version: 1, exportedAt: new Date().toISOString(), items },
+      `keywall-plaintext-${new Date().toISOString().slice(0, 10)}.json`,
     )
   }
   const deleteVaultAccount = async (masterPassword: string, confirmationEmail: string) => {
@@ -355,7 +355,7 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   }
 
   const checkCompromisedPasswords = async () => {
-    if (!window.confirm('CipherVault will send only anonymous five-character SHA-1 hash prefixes. Passwords and full hashes remain on this device. Continue?')) return
+    if (!window.confirm('Keywall will send only anonymous five-character SHA-1 hash prefixes. Passwords and full hashes remain on this device. Continue?')) return
     setCheckingCompromised(true)
     try {
       const passwords = items

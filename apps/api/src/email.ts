@@ -1,5 +1,6 @@
 import { Queue } from 'bullmq'
 import { SMTPClient } from 'emailjs'
+import { brand } from '@keywall/brand'
 import type { AppConfig } from './config'
 
 export class EmailService {
@@ -7,7 +8,7 @@ export class EmailService {
 
   constructor(private readonly config: AppConfig) {
     this.queue = config.emailDelivery === 'queue' && config.redisUrl
-      ? new Queue('ciphervault-email', { connection: { url: config.redisUrl } })
+      ? new Queue('keywall-email', { connection: { url: config.redisUrl } })
       : null
   }
 
@@ -44,10 +45,10 @@ export class EmailService {
       await client.sendAsync({
         from: this.config.smtpFrom!,
         to: email,
-        subject: 'Verify your CipherVault account',
-        text: `Verify your CipherVault account within 30 minutes: ${url.toString()}\n\nIf you did not create this account, ignore this message.`,
+        subject: `Verify your ${brand.productName} account`,
+        text: `Verify your ${brand.productName} account within 30 minutes: ${url.toString()}\n\nIf you did not create this account, ignore this message.`,
         attachment: [{
-          data: `<p>Verify your CipherVault account within 30 minutes.</p><p><a href="${url.toString()}">Verify account</a></p><p>If you did not create this account, ignore this message.</p>`,
+          data: `<p>Verify your ${brand.productName} account within 30 minutes.</p><p><a href="${url.toString()}">Verify account</a></p><p>If you did not create this account, ignore this message.</p>`,
           alternative: true,
         }],
       })
@@ -74,7 +75,7 @@ export class EmailService {
     })
     try {
       await client.sendAsync({
-        from: this.config.smtpFrom!, to: email, subject: 'Recover your CipherVault account',
+        from: this.config.smtpFrom!, to: email, subject: `Recover your ${brand.productName} account`,
         text: `Continue recovery within 30 minutes: ${url.toString()}\n\nYour offline recovery key is also required.`,
       })
     } finally { client.smtp.close() }

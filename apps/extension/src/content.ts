@@ -1,4 +1,4 @@
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 
 function dispatch(element: HTMLInputElement): void {
   element.dispatchEvent(new Event('input', { bubbles: true }))

@@ -16,6 +16,7 @@ function run(arguments_) {
 function encrypt(payload, context) {
   const nonce = randomBytes(12)
   const cipher = createCipheriv('aes-256-gcm', key, nonce)
+  // Backup AAD is a protocol identifier; keep the legacy slug for restore compatibility.
   cipher.setAAD(Buffer.from(`ciphervault-backup:${context}:v1`))
   const ciphertext = Buffer.concat([cipher.update(payload), cipher.final()])
   return Buffer.concat([Buffer.from('CVBK1'), nonce, cipher.getAuthTag(), ciphertext])
@@ -23,7 +24,7 @@ function encrypt(payload, context) {
 
 await mkdir(outputDirectory, { recursive: true })
 const database = run(['compose', '-f', 'infra/docker-compose.yml', 'exec', '-T', 'postgres',
-  'pg_dump', '-U', 'ciphervault', '-d', 'ciphervault', '-Fc', '--no-owner', '--no-acl'])
+  'pg_dump', '-U', 'keywall', '-d', 'keywall', '-Fc', '--no-owner', '--no-acl'])
 const minioContainer = run(['compose', '-f', 'infra/docker-compose.yml', 'ps', '-q', 'minio']).toString().trim()
 if (!minioContainer) throw new Error('MinIO container is not running')
 const objects = run(['run', '--rm', '--volumes-from', minioContainer, 'alpine:3.21',

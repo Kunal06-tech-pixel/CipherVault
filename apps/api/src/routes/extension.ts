@@ -5,7 +5,7 @@ import {
   extensionGrantRequestSchema,
   extensionTokenExchangeSchema,
   extensionTokenRefreshSchema,
-} from '@ciphervault/contracts'
+} from '@keywall/contracts'
 import { requireAuthentication, type ApiContext } from '../api-context'
 import { opaqueToken, sha256 } from '../security'
 

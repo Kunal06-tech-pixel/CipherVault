@@ -7,11 +7,13 @@ import {
   type KdfParameters,
   type VaultItem,
   type WrappedVaultKey,
-} from '@ciphervault/contracts'
+} from '@keywall/contracts'
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
+// These protocol identifiers intentionally keep the legacy ciphervault slug.
+// They are authenticated-encryption/HKDF inputs, not display branding.
 export const DEFAULT_KDF: KdfParameters = Object.freeze({
   algorithm: 'argon2id',
   memoryKiB: 65_536,

@@ -1,5 +1,6 @@
-const CACHE_NAME = 'ciphervault-static-v2-beta3'
+const CACHE_NAME = 'keywall-static-v2-beta3'
 const SHELL_URLS = ['/', '/manifest.webmanifest?v=gold-20260726', '/icon.svg?v=gold-20260726']
+const LEGACY_CACHE_PREFIX = 'ciphervault-static-'
 
 function isCacheableStaticRequest(request) {
   if (request.method !== 'GET') return false
@@ -29,7 +30,9 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const names = await caches.keys()
-    await Promise.all(names.filter((name) => name.startsWith('ciphervault-static-') && name !== CACHE_NAME).map((name) => caches.delete(name)))
+    await Promise.all(names.filter((name) => (
+      (name.startsWith('keywall-static-') || name.startsWith(LEGACY_CACHE_PREFIX)) && name !== CACHE_NAME
+    )).map((name) => caches.delete(name)))
     await self.clients.claim()
   })())
 })

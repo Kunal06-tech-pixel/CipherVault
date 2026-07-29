@@ -1,4 +1,4 @@
-import type { CustomField, RecoveryCodeItem } from '@ciphervault/contracts'
+import type { CustomField, RecoveryCodeItem } from '@keywall/contracts'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 
 const fieldTypes: CustomField['type'][] = ['text', 'secret', 'username', 'password', 'pin', 'email', 'url', 'number', 'date', 'multiline']

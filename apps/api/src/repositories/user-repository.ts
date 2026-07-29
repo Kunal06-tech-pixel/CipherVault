@@ -1,5 +1,5 @@
 import type { Sql } from 'postgres'
-import type { WrappedVaultKey } from '@ciphervault/contracts'
+import type { WrappedVaultKey } from '@keywall/contracts'
 import type { CreateUserInput, StoredUser } from './types'
 
 export class UserRepository {

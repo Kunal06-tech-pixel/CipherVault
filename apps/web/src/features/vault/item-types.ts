@@ -12,7 +12,7 @@ import {
   QrCode,
   Wifi,
 } from 'lucide-react'
-import type { VaultItemType } from '@ciphervault/contracts'
+import type { VaultItemType } from '@keywall/contracts'
 
 export const typeLabels: Record<VaultItemType, string> = {
   login: 'Login Credential',

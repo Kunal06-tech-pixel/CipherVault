@@ -1,6 +1,6 @@
 # Beginner Deployment: Netlify + Supabase + Render
 
-This guide deploys CipherVault as a private beta:
+This guide deploys Keywall as a private beta:
 
 - Netlify hosts the browser app.
 - Supabase hosts PostgreSQL only.
@@ -76,9 +76,9 @@ ENABLE_ATTACHMENTS=false
 The Render API service uses:
 
 ```bash
-npm ci && npm run build -w @ciphervault/api
-npm run db:migrate -w @ciphervault/api
-npm run start -w @ciphervault/api
+npm ci && npm run build -w @keywall/api
+npm run db:migrate -w @keywall/api
+npm run start -w @keywall/api
 ```
 
 After deployment, open:
@@ -104,7 +104,7 @@ VITE_API_URL=https://<your-render-api>.onrender.com
 Netlify will run:
 
 ```bash
-node scripts/prepare-netlify-config.mjs && npm run build -w @ciphervault/web
+node scripts/prepare-netlify-config.mjs && npm run build -w @keywall/web
 ```
 
 That command inserts the Render API origin into the Content Security Policy during the Netlify build.

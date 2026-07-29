@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { VaultItem } from '@ciphervault/contracts'
+import type { VaultItem } from '@keywall/contracts'
 import { categoryCounts, healthLabel, recentItems, securityScore } from './dashboard-metrics'
 
 const item = (id: string, type: VaultItem['type'], updatedAt: string, archived = false): VaultItem => ({ id, schemaVersion: 2, type, name: id, category: 'Personal', fields: {}, favorite: false, tags: [], archived, createdAt: updatedAt, updatedAt })

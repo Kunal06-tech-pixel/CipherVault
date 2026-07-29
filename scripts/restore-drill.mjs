@@ -9,6 +9,7 @@ const key = Buffer.from((await readFile(resolve('infra/secrets/backup_key.txt'),
 function decrypt(payload, context) {
   if (payload.subarray(0, 5).toString() !== 'CVBK1') throw new Error('Invalid backup format')
   const decipher = createDecipheriv('aes-256-gcm', key, payload.subarray(5, 17))
+  // Backup AAD is a protocol identifier; keep the legacy slug for restore compatibility.
   decipher.setAAD(Buffer.from(`ciphervault-backup:${context}:v1`)); decipher.setAuthTag(payload.subarray(17, 33))
   return Buffer.concat([decipher.update(payload.subarray(33)), decipher.final()])
 }
@@ -20,7 +21,7 @@ function run(arguments_, input) {
 
 const database = decrypt(await readFile(resolve(directory, 'postgres.dump.cvbk')), 'postgres')
 const objects = decrypt(await readFile(resolve(directory, 'objects.tar.gz.cvbk')), 'objects')
-const name = `ciphervault-restore-${randomBytes(4).toString('hex')}`
+const name = `keywall-restore-${randomBytes(4).toString('hex')}`
 try {
   run(['run', '--rm', '-i', 'alpine:3.21', 'tar', '-tzf', '-'], objects)
   run(['run', '-d', '--name', name, '-e', `${'POSTGRES_PASSWORD'}=restore-only-password`, 'postgres:17-alpine'])

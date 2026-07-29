@@ -1,5 +1,5 @@
-import type { EncryptedItem, KdfParameters, VaultItem, WrappedVaultKey } from '@ciphervault/contracts'
-import type { RecoveryEnvelope } from '@ciphervault/crypto'
+import type { EncryptedItem, KdfParameters, VaultItem, WrappedVaultKey } from '@keywall/contracts'
+import type { RecoveryEnvelope } from '@keywall/crypto'
 import cryptoWorkerAssetUrl from './crypto.worker.ts?worker&url'
 
 type RegistrationMaterial = {

@@ -12,7 +12,7 @@ if (!minioContainer) throw new Error('MinIO container is not running')
 const surfaces = {
   logs: output(['compose', '-f', 'infra/docker-compose.yml', 'logs', '--no-color', 'api', 'worker']),
   database: output(['compose', '-f', 'infra/docker-compose.yml', 'exec', '-T', 'postgres',
-    'pg_dump', '-U', 'ciphervault', '-d', 'ciphervault', '--inserts']),
+    'pg_dump', '-U', 'keywall', '-d', 'keywall', '--inserts']),
   objectStorage: output(['run', '--rm', '--volumes-from', minioContainer, 'alpine:3.21',
     'tar', '-cf', '-', '-C', '/data', '.']),
 }

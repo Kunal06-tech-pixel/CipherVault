@@ -1,5 +1,5 @@
 import type { Sql } from 'postgres'
-import type { EncryptedItem, SyncMutation } from '@ciphervault/contracts'
+import type { EncryptedItem, SyncMutation } from '@keywall/contracts'
 import type { SyncResult } from './types'
 
 function normalizeItem(item: EncryptedItem): EncryptedItem {

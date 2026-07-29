@@ -1,5 +1,5 @@
 {
-  "name": "@ciphervault/extension",
+  "name": "@keywall/extension",
   "version": "2.0.0-beta.1",
   "private": true,
   "type": "module",
@@ -10,8 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ciphervault/contracts": "*",
-    "@ciphervault/crypto": "*",
+    "@keywall/brand": "*",
+    "@keywall/contracts": "*",
+    "@keywall/crypto": "*",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

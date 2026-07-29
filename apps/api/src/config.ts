@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { brand } from '@keywall/brand'
 import { z } from 'zod'
 
 function secret(name: string, fallback?: string): string | undefined {
@@ -64,7 +65,7 @@ export type AppConfig = z.infer<typeof schema>
 
 export function loadDatabaseUrl(): string {
   return z.string().min(1).parse(
-    secret('DATABASE_URL', 'postgres://ciphervault:ciphervault@localhost:5432/ciphervault'),
+    secret('DATABASE_URL', 'postgres://keywall:keywall@localhost:5432/keywall'),
   )
 }
 
@@ -87,7 +88,7 @@ export function loadConfig(): AppConfig {
     allowUnverifiedLogin: process.env.ALLOW_UNVERIFIED_LOGIN === 'true' || !isProduction,
     smtpHost: process.env.SMTP_HOST ?? 'localhost',
     smtpPort: Number(process.env.SMTP_PORT ?? 1025),
-    smtpFrom: process.env.SMTP_FROM ?? 'security@ciphervault.local',
+    smtpFrom: process.env.SMTP_FROM ?? brand.smtpFrom,
     smtpUser: process.env.SMTP_USER,
     smtpPassword: secret('SMTP_PASSWORD'),
     redisUrl: secret('REDIS_URL'),
@@ -102,8 +103,8 @@ export function loadConfig(): AppConfig {
     s3Endpoint: process.env.S3_ENDPOINT ?? (isProduction ? undefined : 'http://localhost:9000'),
     s3PublicEndpoint: process.env.S3_PUBLIC_ENDPOINT ?? process.env.S3_ENDPOINT ?? (isProduction ? undefined : 'http://localhost:9000'),
     s3Region: process.env.S3_REGION ?? 'us-east-1',
-    s3Bucket: process.env.S3_BUCKET ?? 'ciphervault-attachments',
-    s3AccessKey: secret('S3_ACCESS_KEY', isProduction ? undefined : 'ciphervault'),
+    s3Bucket: process.env.S3_BUCKET ?? `${brand.slug}-attachments`,
+    s3AccessKey: secret('S3_ACCESS_KEY', isProduction ? undefined : brand.slug),
     s3SecretKey: secret('S3_SECRET_KEY', isProduction ? undefined : 'development-minio-password'),
   })
 }

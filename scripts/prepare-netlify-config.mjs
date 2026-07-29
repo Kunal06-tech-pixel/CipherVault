@@ -1,12 +1,12 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const marker = 'CIPHERVAULT_CONNECT_SRC'
+const marker = 'KEYWALL_CONNECT_SRC'
 const netlifyConfigPath = new URL('../netlify.toml', import.meta.url)
 const apiUrl = process.env.VITE_API_URL
-const extraConnectSrc = process.env.CIPHERVAULT_CSP_CONNECT_SRC_EXTRA ?? ''
+const extraConnectSrc = process.env.KEYWALL_CSP_CONNECT_SRC_EXTRA ?? ''
 
 if (!apiUrl) {
-  console.error('VITE_API_URL is required for Netlify deploys, for example https://ciphervault-api.onrender.com')
+  console.error('VITE_API_URL is required for Netlify deploys, for example https://keywall-api.onrender.com')
   process.exit(1)
 }
 
