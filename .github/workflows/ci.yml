@@ -126,6 +126,9 @@ jobs:
       - run: CV_FORBIDDEN_MARKER=CI-SMOKE-PLAINTEXT-NEVER-SENT npm run verify:plaintext-negative
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+        env:
+          CV_ORIGIN: http://localhost:8080
+          CV_SKIP_WEB_SERVER: '1'
       - if: failure()
         run: docker compose -f infra/docker-compose.yml logs --no-color
       - if: always()
