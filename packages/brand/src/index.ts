@@ -11,7 +11,7 @@ export const brand = Object.freeze({
   pwa: {
     name: 'Keywall',
     shortName: 'Keywall',
-    themeColor: '#101418',
+    themeColor: '#0A0C0B',
     description: 'Zero-knowledge password manager',
   },
   extension: {
