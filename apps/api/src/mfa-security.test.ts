@@ -12,7 +12,8 @@ describe('MFA security primitives', () => {
   it('encrypts secrets with authenticated encryption and rejects tampering', () => {
     const key = Buffer.alloc(32, 4).toString('base64url')
     const envelope = encryptMfaSecret('TOPSECRET', key)
+    const tamperedCiphertext = `${envelope.ciphertext.slice(0, -1)}${envelope.ciphertext.endsWith('A') ? 'B' : 'A'}`
     expect(decryptMfaSecret(envelope, key)).toBe('TOPSECRET')
-    expect(() => decryptMfaSecret({ ...envelope, ciphertext: `A${envelope.ciphertext.slice(1)}` }, key)).toThrow()
+    expect(() => decryptMfaSecret({ ...envelope, ciphertext: tamperedCiphertext }, key)).toThrow()
   })
 })
