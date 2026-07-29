@@ -1,11 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Keywall">
-  <defs>
-    <linearGradient id="vault-gold" x1="96" x2="416" y1="80" y2="432" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f0c45c"/>
-      <stop offset="1" stop-color="#c48e2e"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#vault-gold)"/>
-  <path d="M256 92 390 145v105c0 86-53 145-134 174-81-29-134-88-134-174V145l134-53Z" fill="none" stroke="#111119" stroke-width="32" stroke-linejoin="round"/>
-  <path d="m198 257 39 39 79-88" fill="none" stroke="#111119" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="512" height="512" rx="112" fill="#A855F7"/>
+  <path d="M256 92 390 145v105c0 86-53 145-134 174-81-29-134-88-134-174V145l134-53Z" fill="none" stroke="#09080F" stroke-width="32" stroke-linejoin="round"/>
+  <path d="m198 257 39 39 79-88" fill="none" stroke="#09080F" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

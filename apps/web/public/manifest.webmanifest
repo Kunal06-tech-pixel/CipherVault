@@ -4,11 +4,11 @@
   "description": "Zero-knowledge password manager",
   "start_url": "/app",
   "display": "standalone",
-  "background_color": "#07110d",
-  "theme_color": "#101418",
+  "background_color": "#03060C",
+  "theme_color": "#03060C",
   "icons": [
     {
-      "src": "/icon.svg?v=gold-20260726",
+      "src": "/icon.svg?v=purple-20260729",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
