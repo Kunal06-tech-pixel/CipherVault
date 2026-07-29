@@ -1,3 +1,6 @@
+## Live Demo
+https://keywall.kun6lgit.workers.dev/
+
 # Keywall Production Beta
 
 Keywall is a zero-knowledge, multi-user password manager. Vault data is encrypted on the client before it reaches the API; PostgreSQL, Valkey, object storage, logs, and backups never receive plaintext vault fields or user vault keys.
