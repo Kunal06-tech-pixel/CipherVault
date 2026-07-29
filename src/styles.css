@@ -1,37 +1,37 @@
 :root {
   color-scheme: dark;
   font-family: Geist, Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #f7fbf8;
-  background: #0a0c0b;
+  color: #f8f6ff;
+  background: #03060c;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
-  --color-obsidian: #0a0c0b;
-  --color-mint: #8eebcb;
-  --color-mint-strong: #b8ffe5;
-  --color-mint-soft: rgba(142, 235, 203, .12);
-  --color-mint-line: rgba(142, 235, 203, .34);
-  --surface-0: #0a0c0b;
-  --surface-1: #101311;
-  --surface-2: #151916;
-  --surface-3: #1b201d;
-  --surface-raised: #121613;
-  --border: rgba(236, 245, 240, .1);
-  --border-strong: rgba(236, 245, 240, .18);
-  --border-focus: rgba(142, 235, 203, .72);
-  --text: #f7fbf8;
-  --text-secondary: #b8c4bd;
-  --text-muted: #839189;
-  --text-dim: #59645e;
+  --color-obsidian: #03060c;
+  --color-mint: #a855f7;
+  --color-mint-strong: #f05cff;
+  --color-mint-soft: rgba(168, 85, 247, .16);
+  --color-mint-line: rgba(205, 128, 255, .42);
+  --surface-0: #03060c;
+  --surface-1: #090d16;
+  --surface-2: #101521;
+  --surface-3: #171d2b;
+  --surface-raised: #0d1220;
+  --border: rgba(226, 218, 255, .1);
+  --border-strong: rgba(226, 218, 255, .18);
+  --border-focus: rgba(216, 117, 255, .78);
+  --text: #f8f6ff;
+  --text-secondary: #c8c0d8;
+  --text-muted: #9289a3;
+  --text-dim: #625b70;
   --danger: #ff8e9a;
   --danger-bg: rgba(255, 94, 112, .1);
   --danger-border: rgba(255, 142, 154, .26);
   --warning: #f4c56a;
   --warning-bg: rgba(244, 197, 106, .1);
-  --success: var(--color-mint);
-  --shadow: 0 18px 54px rgba(0, 0, 0, .34);
-  --shadow-soft: 0 8px 28px rgba(0, 0, 0, .22);
+  --success: #b56cff;
+  --shadow: 0 22px 70px rgba(0, 0, 0, .46);
+  --shadow-soft: 0 12px 34px rgba(0, 0, 0, .3);
   --radius-control: 6px;
   --radius-panel: 8px;
   --space-1: 4px;
@@ -156,7 +156,7 @@ a { color: inherit; }
   color: var(--color-obsidian);
   background: var(--color-mint);
   border-color: var(--color-mint);
-  box-shadow: 0 0 0 1px rgba(142, 235, 203, .08), 0 10px 30px rgba(142, 235, 203, .08);
+  box-shadow: 0 0 0 1px rgba(168, 85, 247, .08), 0 10px 30px rgba(168, 85, 247, .08);
 }
 
 .primary-button:hover {
@@ -181,7 +181,7 @@ a { color: inherit; }
 .secondary-button:hover {
   color: var(--text);
   background: rgba(247, 251, 248, .07);
-  border-color: rgba(142, 235, 203, .28);
+  border-color: rgba(168, 85, 247, .28);
 }
 
 .danger-button {
@@ -211,8 +211,8 @@ a { color: inherit; }
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(142, 235, 203, .11), transparent 1px) 50% 0 / 112px 112px,
-    linear-gradient(0deg, rgba(142, 235, 203, .07), transparent 1px) 50% 0 / 112px 112px;
+    linear-gradient(90deg, rgba(168, 85, 247, .11), transparent 1px) 50% 0 / 112px 112px,
+    linear-gradient(0deg, rgba(168, 85, 247, .07), transparent 1px) 50% 0 / 112px 112px;
   mask-image: radial-gradient(circle at 50% 42%, #000 0, transparent 58%);
   opacity: .55;
 }
@@ -333,7 +333,7 @@ a { color: inherit; }
 .input-wrap:focus-within,
 .password-field:focus-within {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(142, 235, 203, .1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, .1);
 }
 
 .input-wrap > svg,
@@ -485,7 +485,7 @@ a { color: inherit; }
 
 .top-search:focus-within {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(142, 235, 203, .1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, .1);
 }
 
 .top-search input {
@@ -612,7 +612,7 @@ a { color: inherit; }
 
 .sidebar nav button.active {
   color: var(--text);
-  border-color: rgba(142, 235, 203, .16);
+  border-color: rgba(168, 85, 247, .16);
   background: var(--color-mint-soft);
 }
 
@@ -746,7 +746,7 @@ a { color: inherit; }
 
 .entry-row:last-child { border-bottom: 0; }
 .entry-row:hover,
-.entry-row.selected { background: rgba(142, 235, 203, .06); }
+.entry-row.selected { background: rgba(168, 85, 247, .06); }
 .entry-row.selected::before {
   content: '';
   position: absolute;
@@ -765,7 +765,7 @@ a { color: inherit; }
   display: grid;
   place-items: center;
   color: var(--color-mint);
-  border: 1px solid rgba(142, 235, 203, .2);
+  border: 1px solid rgba(168, 85, 247, .2);
   border-radius: var(--radius-control);
   background: var(--color-mint-soft);
 }
@@ -1092,7 +1092,7 @@ a { color: inherit; }
 .modal textarea:focus,
 .modal select:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(142, 235, 203, .1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, .1);
 }
 
 .two-columns,
