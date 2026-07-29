@@ -65,7 +65,7 @@ export type AppConfig = z.infer<typeof schema>
 
 export function loadDatabaseUrl(): string {
   return z.string().min(1).parse(
-    secret('DATABASE_URL', 'postgres://keywall:keywall@localhost:5432/keywall'),
+    secret('DATABASE_URL', isProduction ? undefined : 'postgres://keywall:keywall@localhost:5432/keywall'),
   )
 }
 

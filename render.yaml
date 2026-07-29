@@ -3,8 +3,8 @@ services:
     name: keywall-api
     plan: free
     runtime: node
-    buildCommand: npm ci --include=dev && npm run build -w @keywall/api && npm run db:migrate -w @keywall/api
-    startCommand: npm run start -w @keywall/api
+    buildCommand: npm ci --include=dev && npm run build -w @keywall/api
+    startCommand: npm run db:migrate -w @keywall/api && npm run start -w @keywall/api
     healthCheckPath: /health/ready
     envVars:
       - key: NODE_VERSION
@@ -25,11 +25,11 @@ services:
         value: "false"
       - key: PUBLIC_ORIGIN
         sync: false
-      - key: DATABASE_URL
-        sync: false
-      - key: AUTH_PEPPER
-        sync: false
-      - key: PRELOGIN_SECRET
-        sync: false
-      - key: MFA_ENCRYPTION_KEY
-        sync: false
+      - key: DATABASE_URL_FILE
+        value: /etc/secrets/DATABASE_URL
+      - key: AUTH_PEPPER_FILE
+        value: /etc/secrets/AUTH_PEPPER
+      - key: PRELOGIN_SECRET_FILE
+        value: /etc/secrets/PRELOGIN_SECRET
+      - key: MFA_ENCRYPTION_KEY_FILE
+        value: /etc/secrets/MFA_ENCRYPTION_KEY
