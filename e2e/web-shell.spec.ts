@@ -7,9 +7,9 @@ test.describe('Keywall production web shell', () => {
     const csp = response?.headers()['content-security-policy'] ?? ''
     expect(csp).toContain("default-src 'self'")
     expect(csp).toContain("frame-ancestors 'none'")
-    await expect(page.getByRole('heading', { name: /^keywall$/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /keys stay on your device/i })).toBeVisible()
     await expect(page.getByLabel('Public').getByRole('link', { name: /launch app/i })).toBeVisible()
-    await expect(page.getByText(/private beta, not public general availability/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: /private beta\. not public\. by design\./i })).toBeVisible()
   })
 
   test('serves accessible auth form from the app route', async ({ page }) => {
