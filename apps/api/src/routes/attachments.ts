@@ -5,8 +5,9 @@ import { requireAuthentication, type ApiContext } from '../api-context'
 export function registerAttachmentRoutes(app: FastifyInstance, context: ApiContext): void {
   const { database, attachments } = context
   if (!attachments) throw new Error('Attachment routes require configured attachment storage.')
+  const attachmentRateLimit = { max: 60, timeWindow: '1 minute' }
 
-  app.post('/v1/attachments/initiate', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/attachments/initiate', { preHandler: requireAuthentication, config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (request, reply) => {
     const parsed = attachmentInitiateSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const reserved = await database.reserveAttachment(parsed.data, request.auth!.user.id)
@@ -25,7 +26,7 @@ export function registerAttachmentRoutes(app: FastifyInstance, context: ApiConte
     }
   })
 
-  app.post('/v1/attachments/:id/complete', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/attachments/:id/complete', { preHandler: requireAuthentication, config: { rateLimit: attachmentRateLimit } }, async (request, reply) => {
     const id = (request.params as { id: string }).id
     const parsed = attachmentCompleteSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
@@ -43,7 +44,7 @@ export function registerAttachmentRoutes(app: FastifyInstance, context: ApiConte
     return { completed: true }
   })
 
-  app.get('/v1/attachments/:id', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.get('/v1/attachments/:id', { preHandler: requireAuthentication, config: { rateLimit: attachmentRateLimit } }, async (request, reply) => {
     const id = (request.params as { id: string }).id
     const attachment = await database.findAttachment(id, request.auth!.user.id)
     if (!attachment || attachment.status !== 'complete') return reply.code(404).send({ error: 'attachment_not_found' })
@@ -54,7 +55,7 @@ export function registerAttachmentRoutes(app: FastifyInstance, context: ApiConte
     }
   })
 
-  app.delete('/v1/attachments/:id', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.delete('/v1/attachments/:id', { preHandler: requireAuthentication, config: { rateLimit: attachmentRateLimit } }, async (request, reply) => {
     const id = (request.params as { id: string }).id
     const attachment = await database.deleteAttachment(id, request.auth!.user.id)
     if (!attachment) return reply.code(404).send({ error: 'attachment_not_found' })

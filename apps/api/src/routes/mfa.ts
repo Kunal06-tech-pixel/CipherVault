@@ -70,15 +70,17 @@ async function finishMfaLogin(
 
 export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): void {
   const { database, config } = context
+  const authenticatedRateLimit = { max: 30, timeWindow: '1 minute' }
+  const enrollmentRateLimit = { max: 10, timeWindow: '10 minutes' }
 
-  app.get('/v1/auth/mfa', { preHandler: requireAuthentication }, async (request) => {
+  app.get('/v1/auth/mfa', { preHandler: requireAuthentication, config: { rateLimit: authenticatedRateLimit } }, async (request) => {
     const factors = await database.listMfaFactors(request.auth!.user.id)
     return {
       factors: factors.map(({ id, kind, label, createdAt, lastUsedAt }) => ({ id, kind, label, createdAt, lastUsedAt })),
     }
   })
 
-  app.post('/v1/auth/mfa/totp/start', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/auth/mfa/totp/start', { preHandler: requireAuthentication, config: { rateLimit: enrollmentRateLimit } }, async (request, reply) => {
     if (!recentlyReauthenticated(context, request)) return reply.code(403).send({ error: 'recent_reauthentication_required' })
     const parsed = totpEnrollmentStartSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
@@ -91,7 +93,7 @@ export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): vo
     return { factorId, secret, otpauthUri: `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&digits=6&period=30` }
   })
 
-  app.post('/v1/auth/mfa/totp/confirm', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/auth/mfa/totp/confirm', { preHandler: requireAuthentication, config: { rateLimit: enrollmentRateLimit } }, async (request, reply) => {
     if (!recentlyReauthenticated(context, request)) return reply.code(403).send({ error: 'recent_reauthentication_required' })
     const parsed = totpEnrollmentConfirmSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
@@ -111,7 +113,7 @@ export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): vo
     return { enabled: true, recoveryCodes }
   })
 
-  app.post('/v1/auth/mfa/passkey/start', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/auth/mfa/passkey/start', { preHandler: requireAuthentication, config: { rateLimit: enrollmentRateLimit } }, async (request, reply) => {
     if (!recentlyReauthenticated(context, request)) return reply.code(403).send({ error: 'recent_reauthentication_required' })
     const parsed = passkeyEnrollmentStartSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
@@ -138,7 +140,7 @@ export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): vo
     return { enrollmentToken, options }
   })
 
-  app.post('/v1/auth/mfa/passkey/complete', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/auth/mfa/passkey/complete', { preHandler: requireAuthentication, config: { rateLimit: enrollmentRateLimit } }, async (request, reply) => {
     if (!recentlyReauthenticated(context, request)) return reply.code(403).send({ error: 'recent_reauthentication_required' })
     const parsed = passkeyEnrollmentCompleteSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
@@ -171,7 +173,7 @@ export function registerMfaRoutes(app: FastifyInstance, context: ApiContext): vo
     return { enabled: true, recoveryCodes }
   })
 
-  app.delete('/v1/auth/mfa/:id', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.delete('/v1/auth/mfa/:id', { preHandler: requireAuthentication, config: { rateLimit: enrollmentRateLimit } }, async (request, reply) => {
     if (!recentlyReauthenticated(context, request)) return reply.code(403).send({ error: 'recent_reauthentication_required' })
     const factorId = (request.params as { id?: string }).id ?? ''
     const disabled = await database.disableMfaFactor(request.auth!.user.id, factorId)

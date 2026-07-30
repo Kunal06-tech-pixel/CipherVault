@@ -54,7 +54,7 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     return reply.code(202).send({ accepted: true, verificationRequired })
   })
 
-  app.post('/v1/auth/verify-email', async (request, reply) => {
+  app.post('/v1/auth/verify-email', { config: { rateLimit: authRateLimit({ max: 10, timeWindow: '10 minutes' }) } }, async (request, reply) => {
     const token = typeof (request.body as { token?: unknown } | null)?.token === 'string'
       ? (request.body as { token: string }).token
       : ''
@@ -150,14 +150,14 @@ export function registerAuthRoutes(app: FastifyInstance, context: ApiContext): v
     return { recovered: true, sessionsRevoked: true }
   })
 
-  app.post('/v1/auth/logout', async (request, reply) => {
+  app.post('/v1/auth/logout', { config: { rateLimit: authRateLimit({ max: 30, timeWindow: '1 minute' }) } }, async (request, reply) => {
     if (request.auth) await database.revokeSession(request.auth.session.id, request.auth.user.id)
     reply.clearCookie(sessionCookie, { path: '/', secure: config.cookieSecure, sameSite: browserSessionSameSite(config) })
     reply.header('Clear-Site-Data', '"cache", "cookies"')
     return reply.code(204).send()
   })
 
-  app.post('/v1/auth/reauthenticate', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/auth/reauthenticate', { preHandler: requireAuthentication, config: { rateLimit: authRateLimit({ max: 10, timeWindow: '5 minutes' }) } }, async (request, reply) => {
     const parsed = reauthenticateRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const valid = await verifyAuthKey(request.auth!.user.authVerifierHash, parsed.data.authKey, config.authPepper)

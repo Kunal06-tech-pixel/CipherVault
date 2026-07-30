@@ -27,12 +27,14 @@ function verifyDeviceSignature(publicJwk: JsonWebKey, message: string, signature
 
 export function registerExtensionRoutes(app: FastifyInstance, context: ApiContext): void {
   const { database } = context
+  const authenticatedRateLimit = { max: 30, timeWindow: '1 minute' }
+  const pairingRateLimit = { max: 10, timeWindow: '10 minutes' }
 
-  app.get('/v1/devices', { preHandler: requireAuthentication }, async (request) => ({
+  app.get('/v1/devices', { preHandler: requireAuthentication, config: { rateLimit: authenticatedRateLimit } }, async (request) => ({
     devices: await database.listExtensionDevices(request.auth!.user.id),
   }))
 
-  app.delete('/v1/devices/:id', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.delete('/v1/devices/:id', { preHandler: requireAuthentication, config: { rateLimit: pairingRateLimit } }, async (request, reply) => {
     const deviceId = (request.params as { id?: string }).id ?? ''
     const revoked = await database.revokeExtensionDevice(request.auth!.user.id, deviceId)
     if (!revoked) return reply.code(404).send({ error: 'device_not_found' })
@@ -40,7 +42,7 @@ export function registerExtensionRoutes(app: FastifyInstance, context: ApiContex
     return reply.code(204).send()
   })
 
-  app.post('/v1/extension/grants', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/extension/grants', { preHandler: requireAuthentication, config: { rateLimit: pairingRateLimit } }, async (request, reply) => {
     const parsed = extensionGrantRequestSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     if (parsed.data.devicePublicKey.wrapKey.kty !== 'RSA' || parsed.data.devicePublicKey.signingKey.kty !== 'EC') {
@@ -57,7 +59,7 @@ export function registerExtensionRoutes(app: FastifyInstance, context: ApiContex
     return { code }
   })
 
-  app.post('/v1/extension/grants/approve', { preHandler: requireAuthentication }, async (request, reply) => {
+  app.post('/v1/extension/grants/approve', { preHandler: requireAuthentication, config: { rateLimit: pairingRateLimit } }, async (request, reply) => {
     const parsed = extensionGrantApprovalSchema.safeParse(request.body)
     if (!parsed.success) return reply.code(400).send({ error: 'invalid_request' })
     const approved = await database.approveExtensionGrant(
@@ -103,7 +105,7 @@ export function registerExtensionRoutes(app: FastifyInstance, context: ApiContex
     return { accessToken, expiresIn: 300 }
   })
 
-  app.get('/v1/extension/sync', async (request, reply) => {
+  app.get('/v1/extension/sync', { config: { rateLimit: { max: 120, timeWindow: '1 minute' } } }, async (request, reply) => {
     const token = bearer(request)
     const authenticated = token ? await database.authenticateExtensionToken(sha256(token)) : null
     if (!authenticated) return reply.code(401).send({ error: 'invalid_access_token' })
