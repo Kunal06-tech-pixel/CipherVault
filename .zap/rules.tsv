@@ -1,2 +1,3 @@
 10049	IGNORE	(Intentional no-store policy for encrypted vault UI and static assets in CI)
 10109	IGNORE	(Single-page application classification; not a vulnerability)
+10096	IGNORE	(Unix timestamp disclosure in bundled assets; not a security risk in this context)
