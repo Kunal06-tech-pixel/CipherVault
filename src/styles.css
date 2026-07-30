@@ -108,7 +108,7 @@ a { color: inherit; }
   color: var(--text-muted);
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--duration-ui) ease, color var(--duration-ui) ease, border-color var(--duration-ui) ease, opacity var(--duration-fast) ease;
+  transition: background var(--duration-ui) ease, color var(--duration-ui) ease, border-color var(--duration-ui) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
 }
 
 .icon-button:hover,
@@ -124,8 +124,11 @@ a { color: inherit; }
 .danger-button:active,
 .generator-button:active,
 .lock-button:active,
+.add-button:active,
+.sidebar nav button:active,
 .mobile-menu:active {
-  opacity: .74;
+  opacity: .9;
+  transform: scale(.98);
 }
 
 .icon-button.subtle { color: var(--text-dim); }
@@ -149,7 +152,7 @@ a { color: inherit; }
   line-height: 1;
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--duration-ui) ease, color var(--duration-ui) ease, border-color var(--duration-ui) ease, opacity var(--duration-fast) ease, box-shadow var(--duration-ui) ease;
+  transition: background var(--duration-ui) ease, color var(--duration-ui) ease, border-color var(--duration-ui) ease, opacity var(--duration-fast) ease, box-shadow var(--duration-ui) ease, transform var(--duration-fast) var(--ease-out);
 }
 
 .primary-button {
@@ -524,7 +527,7 @@ a { color: inherit; }
   font-size: 13px;
   font-weight: 650;
   cursor: pointer;
-  transition: background var(--duration-ui) ease, border-color var(--duration-ui) ease, color var(--duration-ui) ease, opacity var(--duration-fast) ease;
+  transition: background var(--duration-ui) ease, border-color var(--duration-ui) ease, color var(--duration-ui) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
 }
 
 .generator-button:hover { color: var(--text); border-color: var(--color-mint-line); background: rgba(247, 251, 248, .07); }
@@ -562,7 +565,7 @@ a { color: inherit; }
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: background var(--duration-ui) ease, opacity var(--duration-fast) ease;
+  transition: background var(--duration-ui) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
 }
 
 .add-button:hover { background: var(--color-mint-strong); }
@@ -593,7 +596,7 @@ a { color: inherit; }
   font-weight: 650;
   text-align: left;
   cursor: pointer;
-  transition: background var(--duration-ui) ease, color var(--duration-ui) ease, border-color var(--duration-ui) ease;
+  transition: background var(--duration-ui) ease, color var(--duration-ui) ease, border-color var(--duration-ui) ease, transform var(--duration-fast) var(--ease-out);
 }
 
 .sidebar nav button::before {

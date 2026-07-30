@@ -87,9 +87,14 @@ export function LandingPage() {
         </div>
 
         <div className="landing-trust-grid">
-          {trustPoints.map(({ icon: Icon, title, copy }) => (
+          {trustPoints.map(({ icon: Icon, visual, title, copy }) => (
             <article key={title}>
               <Icon size={21} />
+              <div className={`landing-card-art ${visual}`} aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </div>
 
               <h3>{title}</h3>
               <p>{copy}</p>
