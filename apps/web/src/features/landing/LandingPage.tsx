@@ -2,10 +2,6 @@ import { ArrowRight, CheckCircle2, DatabaseZap, FileKey2, Github, KeyRound, Lock
 import { brand } from '@keywall/brand'
 import { Logo } from '../../ui/Logo'
 import heroImage from '../../assets/keywall-hero.png'
-import { CyberVaultCanvas } from '../../components/3d/CyberVaultCanvas'
-import { HeroVaultScene } from '../../components/3d/HeroVaultScene'
-import { SecurityArchitectureScene } from '../../components/3d/SecurityArchitectureScene'
-import { PasskeyTokenCard3D } from '../../components/3d/PasskeyTokenCard3D'
 
 const trustPoints = [
   { icon: FileKey2, visual: 'vault', title: 'Client-side encryption', copy: 'Vault items, attachments, and recovery material are encrypted on your device before anything leaves it.' },
@@ -49,13 +45,6 @@ export function LandingPage() {
 
       <section id="product" className="landing-hero">
         <img className="landing-hero-image" src={heroImage} alt="" aria-hidden="true" />
-        
-        {/* Interactive 3D Cyber Vault Hero Scene */}
-        <div className="landing-hero-3d">
-          <CyberVaultCanvas cameraPosition={[0, 1.2, 5]} fov={50}>
-            <HeroVaultScene />
-          </CyberVaultCanvas>
-        </div>
 
         <div className="landing-hero-content">
           <p className="eyebrow">{brand.copy.betaLabel}</p>
@@ -97,24 +86,10 @@ export function LandingPage() {
           <p>{brand.productName} is designed so the server cannot access your keys - by architecture, not by promise.</p>
         </div>
 
-        {/* Interactive GSAP Scroll-Driven 3D Security Architecture Canvas */}
-        <div className="landing-security-3d">
-          <CyberVaultCanvas cameraPosition={[-3.5, 0.5, 4.5]} fov={45}>
-            <SecurityArchitectureScene />
-          </CyberVaultCanvas>
-        </div>
-
         <div className="landing-trust-grid">
-          {trustPoints.map(({ icon: Icon, title, copy }, index) => (
+          {trustPoints.map(({ icon: Icon, title, copy }) => (
             <article key={title}>
               <Icon size={21} />
-              
-              {/* Interactive 3D Hardware Token Card Preview */}
-              <div className="card-3d-wrapper">
-                <CyberVaultCanvas cameraPosition={[0, 0, 4]} fov={45}>
-                  <PasskeyTokenCard3D active={index === 0} />
-                </CyberVaultCanvas>
-              </div>
 
               <h3>{title}</h3>
               <p>{copy}</p>
