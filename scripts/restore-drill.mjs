@@ -48,6 +48,7 @@ function containerLogs() {
 }
 
 try {
+  // Sanity-check the object archive first.
   run(['run', '--rm', '-i', 'alpine:3.21', 'tar', '-tzf', '-'], objects)
 
   run(['run', '-d', '--name', name,
