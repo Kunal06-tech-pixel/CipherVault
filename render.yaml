@@ -25,6 +25,8 @@ services:
         value: "false"
       - key: PUBLIC_ORIGIN
         sync: false
+      - key: PUBLIC_ORIGIN_HOST_SUFFIXES
+        value: "-keywall.kun6lgit.workers.dev"
       - key: DATABASE_URL_FILE
         value: /etc/secrets/DATABASE_URL
       - key: AUTH_PEPPER_FILE

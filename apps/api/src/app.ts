@@ -44,6 +44,7 @@ export async function buildApp(config: AppConfig, overrides: Partial<ApiDependen
     attachments: config.attachmentsEnabled ? overrides.attachments ?? new AttachmentStorage(config) : overrides.attachments,
   }
   const webOrigins = allowedWebOrigins(config)
+  const webOriginHostSuffixes = config.publicOriginHostSuffixes
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error({ err: error }, 'request_failed')
@@ -55,7 +56,7 @@ export async function buildApp(config: AppConfig, overrides: Partial<ApiDependen
 
   await app.register(cookie)
   await app.register(cors, {
-    origin: (origin, callback) => callback(null, !origin || webOrigins.includes(origin) || isExtensionOrigin(origin)),
+    origin: (origin, callback) => callback(null, !origin || isAllowedMutationOrigin(origin, webOrigins, webOriginHostSuffixes) || isExtensionOrigin(origin)),
     credentials: true,
     allowedHeaders: ['content-type', 'x-cv-csrf'],
   })
@@ -85,7 +86,7 @@ export async function buildApp(config: AppConfig, overrides: Partial<ApiDependen
   app.addHook('preHandler', async (request, reply) => {
     if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return
     const extensionPublicRoute = request.routeOptions.url === '/v1/extension/token' || request.routeOptions.url === '/v1/extension/token/refresh'
-    if (!isAllowedMutationOrigin(request.headers.origin, webOrigins) && !(extensionPublicRoute && isExtensionOrigin(request.headers.origin))) {
+    if (!isAllowedMutationOrigin(request.headers.origin, webOrigins, webOriginHostSuffixes) && !(extensionPublicRoute && isExtensionOrigin(request.headers.origin))) {
       return reply.code(403).send({ error: 'origin_rejected' })
     }
     if (request.routeOptions.url && PUBLIC_AUTH_MUTATIONS.has(request.routeOptions.url)) return

@@ -10,11 +10,19 @@ function secret(name: string, fallback?: string): string | undefined {
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+function envList(name: string): string[] {
+  return (process.env[name] ?? '')
+    .split(/[,\s]+/u)
+    .map((value) => value.trim())
+    .filter(Boolean)
+}
+
 const schema = z.object({
   nodeEnv: z.enum(['development', 'test', 'production']),
   host: z.string(),
   port: z.number().int().positive(),
   publicOrigin: z.string().url(),
+  publicOriginHostSuffixes: z.array(z.string().trim().toLowerCase().regex(/^[a-z0-9.-]+$/u)).default([]),
   databaseUrl: z.string().min(1),
   authPepper: z.string().min(32),
   preloginSecret: z.string().min(32),
@@ -75,6 +83,7 @@ export function loadConfig(): AppConfig {
     host: process.env.HOST ?? '0.0.0.0',
     port: Number(process.env.PORT ?? 3001),
     publicOrigin: process.env.PUBLIC_ORIGIN ?? 'http://localhost:5173',
+    publicOriginHostSuffixes: envList('PUBLIC_ORIGIN_HOST_SUFFIXES'),
     databaseUrl: loadDatabaseUrl(),
     authPepper: secret('AUTH_PEPPER', isProduction ? undefined : 'development-auth-pepper-change-before-production'),
     preloginSecret: secret('PRELOGIN_SECRET', isProduction ? undefined : 'development-prelogin-secret-change-production'),

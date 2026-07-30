@@ -9,6 +9,7 @@ const config: AppConfig = {
   host: '127.0.0.1',
   port: 3001,
   publicOrigin: 'https://vault.example.com',
+  publicOriginHostSuffixes: [],
   databaseUrl: 'postgres://unused',
   authPepper: 'test-auth-pepper-that-is-at-least-32-characters',
   preloginSecret: 'test-prelogin-secret-at-least-32-characters',
@@ -98,6 +99,32 @@ describe('API request security', () => {
       expect(response.headers['set-cookie']).toEqual(expect.stringContaining('SameSite=None'))
       expect(response.headers['set-cookie']).toEqual(expect.stringContaining('Secure'))
       expect(createSession).toHaveBeenCalledOnce()
+    } finally {
+      await app.close()
+    }
+  })
+
+  it('allows configured Cloudflare Workers deployment host suffixes in CORS preflight', async () => {
+    const dependencies = testDependencies(vi.fn(async () => null))
+    const app = await buildApp({
+      ...config,
+      publicOrigin: 'https://keywall.kun6lgit.workers.dev',
+      publicOriginHostSuffixes: ['-keywall.kun6lgit.workers.dev'],
+    }, dependencies)
+    try {
+      const origin = 'https://6a241aa9-keywall.kun6lgit.workers.dev'
+      const response = await app.inject({
+        method: 'OPTIONS',
+        url: '/v1/auth/prelogin',
+        headers: {
+          origin,
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type',
+        },
+      })
+
+      expect(response.statusCode).toBe(204)
+      expect(response.headers['access-control-allow-origin']).toBe(origin)
     } finally {
       await app.close()
     }
