@@ -34,23 +34,44 @@ const objects = decrypt(await readFile(resolve(directory, 'objects.tar.gz.cvbk')
 const name = `keywall-restore-${randomBytes(4).toString('hex')}`
 const postgresPasswordEnv = `${'POSTGRES_PASSWORD'}=restore-only-password`
 try {
+  // sanity-check the object archive first
   run(['run', '--rm', '-i', 'alpine:3.21', 'tar', '-tzf', '-'], objects)
+
+  // start postgres container in detached mode and give it a chance to come up
   run(['run', '-d', '--name', name,
     '-e', 'POSTGRES_USER=keywall',
     '-e', postgresPasswordEnv,
     '-e', 'POSTGRES_DB=keywall',
     'postgres:17-alpine'])
+
+  // wait for the container to be running and Postgres to accept connections
   let ready = false
-  for (let attempt = 0; attempt < 30; attempt += 1) {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    // first make sure the container process is running
+    const inspect = spawnSync('docker', ['inspect', '-f', '{{.State.Running}}', name], { encoding: 'utf8' })
+    const running = (inspect.stdout || inspect.stderr || '').toString().trim()
+    if (running !== 'true') {
+      // container exited — grab logs and fail fast with details
+      const logs = spawnSync('docker', ['logs', name], { encoding: 'utf8' })
+      const out = (logs.stdout || '').toString().trim()
+      const err = (logs.stderr || '').toString().trim()
+      throw new Error(`Postgres container did not stay running. logs:\n${out}\n${err}`)
+    }
+
     const check = spawnSync('docker', ['exec', name, 'pg_isready', '-U', 'keywall', '-d', 'keywall'])
     if (check.status === 0) { ready = true; break }
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500)
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000)
   }
-  if (!ready) throw new Error('Isolated restore PostgreSQL did not become ready')
+  if (!ready) {
+    const logs = spawnSync('docker', ['logs', name], { encoding: 'utf8' })
+    throw new Error(`Isolated restore PostgreSQL did not become ready. logs:\n${(logs.stdout||'').toString()}\n${(logs.stderr||'').toString()}`)
+  }
+
+  // run pg_restore — if it fails the run() helper will include stderr/stdout
   run(['exec', '-i', name, 'pg_restore', '-U', 'keywall', '-d', 'keywall',
     '--clean', '--if-exists', '--no-owner', '--no-acl'], database)
   const count = run(['exec', name, 'psql', '-U', 'keywall', '-d', 'keywall', '-Atc',
-    "select count(*) from information_schema.tables where table_schema='public'"]).toString().trim()
+    "select count(*) from information_schema.tables where table_schema='public'" ]).toString().trim()
   if (Number(count) < 10) throw new Error(`Restore produced only ${count} public tables`)
   console.log(JSON.stringify({ ok: true, restoredTables: Number(count), objectArchiveBytes: objects.length }))
 } finally {
