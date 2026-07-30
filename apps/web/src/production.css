@@ -1678,3 +1678,37 @@
   .landing-final > div:last-child { width: 100%; flex-direction: column; }
   .landing-footer { width: calc(100% - 32px); }
 }
+
+/* 3D WebGL Overlay & Canvas Styling */
+.landing-hero-3d {
+  position: absolute;
+  inset: 0 0 0 35%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .landing-hero-3d {
+    inset: 0;
+    opacity: 0.7;
+  }
+}
+
+.landing-security-3d {
+  width: 100%;
+  height: 380px;
+  margin-bottom: 2rem;
+  border-radius: var(--radius-panel);
+  background: radial-gradient(circle at center, rgba(14, 165, 233, 0.08) 0%, rgba(3, 6, 12, 0) 70%);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  overflow: hidden;
+}
+
+.card-3d-wrapper {
+  width: 100%;
+  height: 220px;
+  margin-bottom: 1rem;
+  display: grid;
+  place-items: center;
+}
+

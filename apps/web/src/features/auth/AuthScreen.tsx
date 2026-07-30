@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Check, Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck, User } from 'lucide-react'
+import { Check, Eye, EyeOff, KeyRound, ShieldCheck, User } from 'lucide-react'
 import { brand } from '@keywall/brand'
 import type { SyncMutation } from '@keywall/contracts'
 import { ApiError, login, prelogin, pushMutations, registerAccount, verifyEmail, type MfaLoginChallenge } from '../../api'
@@ -9,6 +9,7 @@ import { hasLegacyVault, removeLegacyVault, unlockLegacyVault } from '../../lega
 import { Logo } from '../../ui/Logo'
 import { RecoveryDialog } from '../recovery/RecoveryDialog'
 import { MfaChallenge } from './MfaChallenge'
+import { LockStatus3D } from '../../components/3d/LockStatus3D'
 
 type AuthMode = 'login' | 'register'
 
@@ -118,7 +119,7 @@ export function AuthScreen({ initialMode = 'login', onUnlock }: { initialMode?: 
   return <main className="auth-shell production-auth">
     <div className="auth-brand"><Logo light /></div>
     <section className="auth-card production-auth-card">
-      <div className="auth-icon">{mode === 'register' ? <ShieldCheck size={25} /> : <LockKeyhole size={25} />}</div>
+      <div className="auth-icon"><LockStatus3D isLocked={true} size={54} /></div>
       <p className="eyebrow">Zero-knowledge security</p>
       <h1>{mode === 'register' ? 'Create your encrypted vault' : `Unlock ${brand.productName}`}</h1>
       <p className="auth-copy">{mode === 'register' ? 'Your master password creates keys on this device. We never receive it or your vault key.' : 'Authenticate and decrypt your synchronized vault on this device.'}</p>

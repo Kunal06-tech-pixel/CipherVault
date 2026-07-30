@@ -31,6 +31,12 @@
       "skillPath": "skills/improve-animations/SKILL.md",
       "computedHash": "9cd956e91139211efa5e17fc5e1675b9a3f711ef38cbc92aa8f3fa5b626b7e12"
     },
+    "omniroute-integration": {
+      "source": "nianyi778/opencode-omniroute-integration",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "f63256b3d7c6d65f60821d01a686d3c6c584411cf3ef6326e3575d6dfea82253"
+    },
     "pick-ui-library": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
