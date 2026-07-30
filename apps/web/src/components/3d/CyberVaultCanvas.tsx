@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Environment, Preload } from '@react-three/drei'
+import { Preload } from '@react-three/drei'
 
 interface CyberVaultCanvasProps {
   children: React.ReactNode
@@ -32,7 +32,6 @@ export function CyberVaultCanvas({
         <pointLight position={[0, 0, 3]} intensity={1.2} color="#06b6d4" />
         
         <Suspense fallback={null}>
-          <Environment preset="city" />
           {children}
           <Preload all />
         </Suspense>
