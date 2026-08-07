@@ -11,7 +11,7 @@ export function LandingPage() {
   return (
     <div className="keywall-landing-root">
       <Navbar />
-      <main>
+      <main aria-label="Public">
         <HeroSection />
         <SecurityArchitectureSection />
         <PrivacySection />
