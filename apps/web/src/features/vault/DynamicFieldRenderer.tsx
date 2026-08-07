@@ -21,7 +21,21 @@ export function DynamicFieldRenderer({ field, value, onChange }: {
     return <label className={field.fullWidth ? 'form-span' : ''}>{label}<SecretInput value={stringValue(value)} onChange={onChange as (value: string) => void} placeholder={field.placeholder} required={field.required} /></label>
   }
   if (field.kind === 'select') {
-    return <label className={field.fullWidth ? 'form-span' : ''}>{label}<select value={stringValue(value)} onChange={(event) => onChange(event.target.value)} required={field.required}>{(field.options ?? []).map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+    return (
+      <label className={field.fullWidth ? 'form-span' : ''}>
+        {label}
+        <div className="custom-select-wrap">
+          <select value={stringValue(value)} onChange={(event) => onChange(event.target.value)} required={field.required}>
+            {(field.options ?? []).map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <span className="select-arrow" aria-hidden="true">▾</span>
+        </div>
+      </label>
+    )
   }
   if (field.kind === 'checkbox') {
     return <label className="favorite-toggle"><input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} /><span className="custom-check" />{field.label}</label>

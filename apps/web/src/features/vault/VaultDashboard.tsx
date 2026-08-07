@@ -24,6 +24,7 @@ const cardItem: Variants = {
   visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.35, ease: easeOut } },
 }
 
+
 export function VaultDashboard({ items, health, compromised, loading, onSelect, onNavigate, onToggleFavorite }: {
   items: VaultItem[]
   health: ReturnType<typeof passwordHealth>
@@ -37,36 +38,151 @@ export function VaultDashboard({ items, health, compromised, loading, onSelect, 
   const recent = recentItems(items)
   const score = securityScore(health, compromised ?? 0)
   const status = healthLabel(score)
-  const categories: Array<{ id: DashboardView; label: string; count: number; icon: typeof KeyRound }> = [
-    ...dashboardTypeOrder.map((id) => ({ id, label: typeLabels[id], count: counts[id], icon: typeIcons[id] })),
-    { id: 'archive', label: 'Archive', count: counts.archive, icon: Archive },
-  ]
 
   if (loading) {
-    return <section className="dashboard-skeleton" aria-label="Loading vault overview">{Array.from({ length: 7 }, (_, index) => <i key={index} />)}</section>
+    return (
+      <section className="dashboard-skeleton" aria-label="Loading vault overview">
+        {Array.from({ length: 4 }, (_, index) => (
+          <i key={index} />
+        ))}
+      </section>
+    )
   }
 
-  return <section className="vault-dashboard" aria-label="Vault overview">
-    <motion.div className="dashboard-summary-grid" variants={cardContainer} initial="hidden" animate="visible">
-      <motion.article variants={cardItem} className="dashboard-card status-card"><span>Vault status</span><b>Fully protected</b><p>All vault content is encrypted before synchronization.</p><ShieldCheck aria-hidden="true" /></motion.article>
-      <motion.article variants={cardItem} className="dashboard-card protected-card"><span>Protected items</span><b>{items.length}</b><p>Across {Object.values(counts).filter(Boolean).length} secure item groups</p><div className="summary-progress"><i style={{ width: `${Math.max(8, Math.min(100, items.length))}%` }} /></div><small><i /> Last sync: just now</small><Layers3 aria-hidden="true" /></motion.article>
-      <motion.article variants={cardItem} className="dashboard-card score-card"><span>Login security score</span><div className="score-content"><b>{score}</b><em className={status.tone}>{status.label}</em></div><div className="score-ring" style={{ '--score': `${score * 3.6}deg` } as React.CSSProperties}><ShieldCheck /></div><button onClick={() => onNavigate('health')}>Review login health</button></motion.article>
-      <motion.article variants={cardItem} className="dashboard-card health-status-card"><span>Login health</span><b className={status.tone}>{status.label}</b><p>{health.weak + health.reused + (compromised ?? 0)} weak, reused or compromised login findings</p><button onClick={() => onNavigate('health')}>View details</button><HeartPulse aria-hidden="true" /></motion.article>
-    </motion.div>
-    <motion.div className="dashboard-content-grid" variants={cardContainer} initial="hidden" animate="visible">
-      <motion.article variants={cardItem} className="dashboard-panel recent-panel">
-        <header><h2>Recent items</h2><button onClick={() => document.getElementById('complete-vault-list')?.scrollIntoView({ behavior: 'smooth' })}>View all</button></header>
-        {recent.length ? <div>{recent.map((item) => {
-          const Icon = typeIcons[item.type]
-          return <div className="recent-row" key={item.id}>
-            <button className="recent-main" onClick={() => onSelect(item)}><span><Icon size={17} /></span><span><b>{item.name}</b><small>{safeSubtitle(item)}</small></span><time>{relativeTime(item.updatedAt)}</time></button>
-            <button className={`recent-favorite ${item.favorite ? 'active' : ''}`} onClick={() => onToggleFavorite(item)} aria-label={`${item.favorite ? 'Remove' : 'Add'} ${item.name} ${item.favorite ? 'from' : 'to'} favorites`}><Star size={16} fill={item.favorite ? 'currentColor' : 'none'} /></button>
+  return (
+    <section className="vault-dashboard" aria-label="Vault overview">
+      {/* Top 3 Hero Metric Cards */}
+      <motion.div className="dashboard-summary-grid" variants={cardContainer} initial="hidden" animate="visible">
+        <motion.article variants={cardItem} className="dashboard-card metrics-hero-card">
+          <div className="card-top-row">
+            <span className="card-eyebrow">Vault items</span>
+            <Layers3 className="card-icon" aria-hidden="true" size={20} />
           </div>
-        })}</div> : <div className="dashboard-empty"><KeyRound /><b>No items yet</b><p>Your recently updated records will appear here.</p></div>}
-      </motion.article>
-      <motion.article variants={cardItem} className="dashboard-panel categories-panel"><header><h2>Item types</h2><span>{items.length} total</span></header><div className="category-grid">{categories.map(({ id, label, count, icon: Icon }) => <button key={id} onClick={() => onNavigate(id)}><Icon size={18} /><b>{label}</b><small>{count} {count === 1 ? 'item' : 'items'}</small></button>)}</div></motion.article>
-      <motion.article variants={cardItem} className="dashboard-panel health-overview"><header><h2>Login health overview</h2></header><div className="health-chart-row"><div className="health-donut" style={{ '--score': `${score * 3.6}deg` } as React.CSSProperties}><b>{health.total}</b><small>Logins</small></div><dl><div><dt><i className="weak" />Weak</dt><dd>{health.weak}</dd></div><div><dt><i className="reused" />Reused</dt><dd>{health.reused}</dd></div><div><dt><i className="compromised" />Compromised</dt><dd>{compromised ?? '-'}</dd></div><div><dt><i className="strong" />Strong</dt><dd>{health.strong}</dd></div></dl></div><div className={`health-guidance ${status.tone}`}><ShieldCheck size={17} /><p><b>{status.label}</b><span>{score >= 85 ? 'Your login credentials have strong password coverage.' : 'Review the login findings to strengthen your vault.'}</span></p></div><button className="health-open" onClick={() => onNavigate('health')}>View login health</button></motion.article>
-    </motion.div>
-    <article className="security-priority-banner"><span><ShieldCheck size={27} /></span><div><b>Your security is our priority</b><p>The server stores ciphertext only. Decrypted values remain on this device while the vault is unlocked.</p></div><div className="safe-art" aria-hidden="true"><ShieldCheck /></div></article>
-  </section>
+          <b className="card-metric-val">{items.length}</b>
+          <p className="card-subtext">Across {Object.values(counts).filter(Boolean).length} item categories</p>
+        </motion.article>
+
+        <motion.article variants={cardItem} className="dashboard-card metrics-hero-card">
+          <div className="card-top-row">
+            <span className="card-eyebrow">Security Score</span>
+            <ShieldCheck className="card-icon" aria-hidden="true" size={20} />
+          </div>
+          <div className="score-metric-row">
+            <b className="card-metric-val">{score}</b>
+            <span className={`score-badge ${status.tone}`}>{status.label}</span>
+          </div>
+          <p className="card-subtext">{health.weak + health.reused + (compromised ?? 0)} items need attention</p>
+        </motion.article>
+
+        <motion.article variants={cardItem} className="dashboard-card metrics-hero-card">
+          <div className="card-top-row">
+            <span className="card-eyebrow">Encryption & Sync</span>
+            <span className="live-status-pill">Zero-Knowledge</span>
+          </div>
+          <b className="card-metric-val status-title">Protected</b>
+          <p className="card-subtext">Client-side AES-256-GCM encryption active</p>
+        </motion.article>
+      </motion.div>
+
+      {/* Main 2-Column Dashboard Workspace */}
+      <motion.div className="dashboard-main-layout" variants={cardContainer} initial="hidden" animate="visible">
+        {/* Left Column: Recent Activity */}
+        <motion.article variants={cardItem} className="dashboard-panel recent-panel">
+          <header className="panel-header">
+            <div>
+              <h2>Recent items</h2>
+              <p className="panel-sub">Recently accessed and updated vault records</p>
+            </div>
+            {recent.length > 0 && (
+              <button className="panel-text-btn" onClick={() => document.getElementById('complete-vault-list')?.scrollIntoView({ behavior: 'smooth' })}>
+                View all items
+              </button>
+            )}
+          </header>
+
+          {recent.length ? (
+            <div className="recent-items-list">
+              {recent.map((item) => {
+                const Icon = typeIcons[item.type]
+                return (
+                  <div className="recent-row" key={item.id}>
+                    <button className="recent-main-btn" onClick={() => onSelect(item)}>
+                      <span className="item-icon-box">
+                        <Icon size={16} />
+                      </span>
+                      <div className="item-info">
+                        <b className="item-name">{item.name}</b>
+                        <small className="item-sub">{safeSubtitle(item)}</small>
+                      </div>
+                      <time className="item-time">{relativeTime(item.updatedAt)}</time>
+                    </button>
+                    <button
+                      className={`favorite-action-btn ${item.favorite ? 'is-favorite' : ''}`}
+                      onClick={() => onToggleFavorite(item)}
+                      aria-label={`${item.favorite ? 'Remove' : 'Add'} ${item.name} ${item.favorite ? 'from' : 'to'} favorites`}
+                    >
+                      <Star size={15} fill={item.favorite ? 'currentColor' : 'none'} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="dashboard-empty-state">
+              <KeyRound size={28} />
+              <b>No vault items yet</b>
+              <p>Items you add or import will appear here for quick access.</p>
+            </div>
+          )}
+        </motion.article>
+
+        {/* Right Column: Password Health Breakdown */}
+        <motion.article variants={cardItem} className="dashboard-panel health-panel">
+          <header className="panel-header">
+            <div>
+              <h2>Password health</h2>
+              <p className="panel-sub">Local security analysis</p>
+            </div>
+            <button className="panel-action-btn" onClick={() => onNavigate('health')}>
+              Inspect
+            </button>
+          </header>
+
+          <div className="health-chart-body">
+            <div className="health-stat-list">
+              <div className="stat-row">
+                <span className="stat-dot strong" />
+                <span className="stat-label">Strong passwords</span>
+                <span className="stat-val">{health.strong}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-dot weak" />
+                <span className="stat-label">Weak passwords</span>
+                <span className="stat-val">{health.weak}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-dot reused" />
+                <span className="stat-label">Reused passwords</span>
+                <span className="stat-val">{health.reused}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-dot compromised" />
+                <span className="stat-label">Compromised logins</span>
+                <span className="stat-val">{compromised ?? '-'}</span>
+              </div>
+            </div>
+
+            <div className={`health-status-box ${status.tone}`}>
+              <HeartPulse size={16} />
+              <div>
+                <b>{status.label}</b>
+                <p>{score >= 85 ? 'Vault passwords meet strong security standards.' : 'Review login health to resolve vulnerable passwords.'}</p>
+              </div>
+            </div>
+          </div>
+        </motion.article>
+      </motion.div>
+    </section>
+  )
 }
+

@@ -374,13 +374,23 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
   }
 
   const health = useMemo(() => passwordHealth(items), [items])
-  const navigation: Array<{ id: View; label: string; icon: typeof KeyRound }> = [
-    { id: 'all', label: 'All items', icon: LayoutDashboard }, { id: 'favorites', label: 'Favorites', icon: Heart },
-    ...dashboardTypeOrder.map((id) => ({ id, label: typeLabels[id], icon: typeIcons[id] })),
+
+  const mainNavigation: Array<{ id: View; label: string; icon: typeof KeyRound }> = [
+    { id: 'all', label: 'All items', icon: LayoutDashboard },
+    { id: 'favorites', label: 'Favorites', icon: Heart },
     { id: 'recent', label: 'Recently updated', icon: RefreshCw },
-    { id: 'archive', label: 'Archive', icon: Archive },
-    { id: 'health', label: 'Login health', icon: ShieldCheck },
   ]
+
+  const categoryNavigation: Array<{ id: View; label: string; icon: typeof KeyRound }> = [
+    ...dashboardTypeOrder.map((id) => ({ id, label: typeLabels[id], icon: typeIcons[id] })),
+  ]
+
+  const systemNavigation: Array<{ id: View; label: string; icon: typeof KeyRound }> = [
+    { id: 'health', label: 'Login health', icon: ShieldCheck },
+    { id: 'archive', label: 'Archive', icon: Archive },
+  ]
+
+  const allNavigation = [...mainNavigation, ...categoryNavigation, ...systemNavigation]
 
   const countFor = (id: View) => {
     if (id === 'all') return items.filter((item) => !item.archived).length
@@ -391,18 +401,300 @@ export function VaultScreen({ email, onLock }: { email: string; onLock: () => vo
     return items.filter((item) => item.type === id && !item.archived).length
   }
 
-  return <div className="app-shell production-shell"><header className="topbar"><button className="mobile-menu" onClick={() => setSidebar(true)}><Menu size={20} /></button><Logo /><div className="top-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search decrypted items on this device..." /></div><div className="top-actions"><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> New item</button><button className="icon-button" onClick={() => setSettings(true)}><Settings size={18} /></button><button className="lock-button" onClick={onLock}><LockStatus3D isLocked={false} size={26} /><span>Lock</span></button></div></header>
-    <div className="workspace">{sidebar && <button className="sidebar-scrim" onClick={() => setSidebar(false)} />}<aside className={`sidebar ${sidebar ? 'open' : ''}`}><div className="mobile-sidebar-head"><Logo light /><button className="icon-button" onClick={() => setSidebar(false)}><X size={18} /></button></div><button className="add-button" onClick={() => { setEditing(null); setSidebar(false) }}><Plus size={17} /> Add secure item</button><nav><p className="nav-label">Your vault</p>{navigation.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? 'active' : ''} onClick={() => { setView(id); setSidebar(false); setSelected(null) }}><Icon size={17} />{label}<span>{countFor(id)}</span></button>)}</nav><div className="sidebar-security"><ShieldCheck size={17} /><div><b>Encrypted vault</b><small>{email}</small></div><i /></div><button className="sidebar-lock" onClick={onLock}><LogOut size={16} /> Lock & sign out</button></aside>
-      <main className="vault-main"><div className="vault-heading"><div><p className="eyebrow">Encrypted personal vault</p><h1>{navigation.find((item) => item.id === view)?.label}</h1><p>{message}</p></div><div className="heading-actions"><input ref={importInput} className="visually-hidden" type="file" accept=".csv,.json,application/json,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importVault(file) }} /><button className="secondary-button" onClick={() => importInput.current?.click()}><Upload size={15} /> Import</button><button className="secondary-button" onClick={exportEncrypted}><Download size={15} /> Backup</button><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> Add item</button></div></div>
-        {view === 'all' && <VaultDashboard items={items} health={health} compromised={compromised} loading={message.startsWith('Synchronizing')} onSelect={setSelected} onNavigate={(next) => { setView(next); setSelected(null) }} onToggleFavorite={(item) => void save({ ...item, favorite: !item.favorite, updatedAt: new Date().toISOString() })} />}
-        {view === 'health' ? <section className="health-grid"><article><span className="health-icon safe"><ShieldCheck /></span><b>{health.total - health.weak}</b><p>Strong login passwords</p></article><article><span className="health-icon warning"><KeyRound /></span><b>{health.weak}</b><p>Weak login passwords</p></article><article><span className="health-icon danger"><RefreshCw /></span><b>{health.reused}</b><p>Reused login passwords</p></article><article><span className="health-icon danger"><ShieldCheck /></span><b>{compromised ?? '-'}</b><p>Compromised logins</p></article><div className="health-note"><ShieldCheck size={20} /><div><b>Login health checks happen locally</b><p>Passwords are analyzed in memory. Compromised checks are opt-in and send only k-anonymous hash prefixes.</p><button className="secondary-button" disabled={checkingCompromised} onClick={() => void checkCompromisedPasswords()}>{checkingCompromised ? 'Checking anonymous ranges...' : 'Check compromised logins'}</button></div></div></section> : <section id="complete-vault-list" className="vault-list production-list">{filtered.length ? <>{filtered.map((item) => { const Icon = typeIcons[item.type]; return <button className={`production-row ${selected?.id === item.id ? 'selected' : ''}`} key={item.id} onClick={() => setSelected(item)}><span className="site-avatar"><Icon size={18} /></span><span className="entry-primary"><b>{item.name}</b><small>{safeSubtitle(item)}</small></span><span className="item-tags">{[item.category, ...item.tags].slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</span><span className="item-type">{typeLabels[item.type]}</span><Star className={item.favorite ? 'favorite-star' : ''} size={17} fill={item.favorite ? 'currentColor' : 'none'} /><MoreHorizontal size={17} /></button> })}</> : <div className="empty-state"><span><KeyRound size={29} /></span><h2>Your encrypted vault is ready</h2><p>Add a secure item. It is encrypted before synchronization.</p><button className="primary-button" onClick={() => setEditing(null)}><Plus size={16} /> Add first item</button></div>}</section>}
-        <footer className="vault-footer"><span><ShieldCheck size={14} /> End-to-end encrypted</span><span>Server stores ciphertext only</span></footer>
-      </main>
-      {selected && <VaultItemDetails item={selected} attachmentsEnabled={attachmentsEnabled} onClose={() => setSelected(null)} onEdit={() => setEditing(selected)} onDelete={() => void remove(selected)} onAttach={() => attachmentInput.current?.click()} onDownloadAttachment={(attachment) => void downloadEncryptedAttachment(attachment)} onDeleteAttachment={(attachmentId) => void removeAttachment(selected, attachmentId)} onRequireReauth={requireReauthentication} onCopy={(value) => void copyValue(value)} />}
-      {attachmentsEnabled && <input ref={attachmentInput} className="visually-hidden" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void attachFile(file) }} />}
+  const activeNav = allNavigation.find((item) => item.id === view)
+
+  return (
+    <div className="app-shell production-shell">
+      {/* Topbar Header */}
+      <header className="topbar">
+        <button className="mobile-menu" onClick={() => setSidebar(true)} aria-label="Open sidebar menu">
+          <Menu size={18} />
+        </button>
+        <Logo />
+        
+        <div className="top-search">
+          <Search size={15} className="search-icon" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search decrypted items..."
+          />
+          <kbd className="search-shortcut">⌘K</kbd>
+        </div>
+
+        <div className="top-actions">
+          <button className="primary-button add-cta" onClick={() => setEditing(null)}>
+            <Plus size={15} /> New item
+          </button>
+          <button className="icon-button" onClick={() => setSettings(true)} aria-label="Settings">
+            <Settings size={17} />
+          </button>
+          <button className="lock-button" onClick={onLock} aria-label="Lock vault">
+            <LockStatus3D isLocked={false} size={24} />
+            <span>Lock</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Workspace Layout */}
+      <div className="workspace">
+        {sidebar && <button className="sidebar-scrim" onClick={() => setSidebar(false)} />}
+        
+        <aside className={`sidebar ${sidebar ? 'open' : ''}`}>
+          <div className="mobile-sidebar-head">
+            <Logo light />
+            <button className="icon-button" onClick={() => setSidebar(false)}>
+              <X size={18} />
+            </button>
+          </div>
+
+          <nav className="sidebar-nav">
+            <div className="nav-group">
+              <p className="nav-label">Vault Overview</p>
+              {mainNavigation.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  className={`nav-item ${view === id ? 'active' : ''}`}
+                  onClick={() => { setView(id); setSidebar(false); setSelected(null) }}
+                >
+                  <Icon size={16} />
+                  <span>{label}</span>
+                  <em className="nav-count">{countFor(id)}</em>
+                </button>
+              ))}
+            </div>
+
+            <div className="nav-group">
+              <p className="nav-label">Item Categories</p>
+              {categoryNavigation.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  className={`nav-item ${view === id ? 'active' : ''}`}
+                  onClick={() => { setView(id); setSidebar(false); setSelected(null) }}
+                >
+                  <Icon size={16} />
+                  <span>{label}</span>
+                  <em className="nav-count">{countFor(id)}</em>
+                </button>
+              ))}
+            </div>
+
+            <div className="nav-group">
+              <p className="nav-label">Security & Trash</p>
+              {systemNavigation.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  className={`nav-item ${view === id ? 'active' : ''}`}
+                  onClick={() => { setView(id); setSidebar(false); setSelected(null) }}
+                >
+                  <Icon size={16} />
+                  <span>{label}</span>
+                  <em className="nav-count">{countFor(id)}</em>
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="sidebar-footer">
+            <div className="sidebar-security">
+              <ShieldCheck size={16} />
+              <div className="user-info">
+                <b>Encrypted vault</b>
+                <small>{email}</small>
+              </div>
+            </div>
+            <button className="sidebar-lock-btn" onClick={onLock}>
+              <LogOut size={15} /> Lock & sign out
+            </button>
+          </div>
+        </aside>
+
+        <main className="vault-main">
+          {/* Page Header */}
+          <div className="vault-heading">
+            <div className="heading-title-group">
+              <div className="title-row">
+                <h1>{activeNav?.label}</h1>
+                <span className="view-count-badge">{countFor(view)} {countFor(view) === 1 ? 'item' : 'items'}</span>
+              </div>
+              <p className="heading-sub">{message}</p>
+            </div>
+
+            <div className="heading-actions">
+              <input
+                ref={importInput}
+                className="visually-hidden"
+                type="file"
+                accept=".csv,.json,application/json,text/csv"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) void importVault(file)
+                }}
+              />
+              <button className="secondary-button" onClick={() => importInput.current?.click()}>
+                <Upload size={14} /> Import
+              </button>
+              <button className="secondary-button" onClick={exportEncrypted}>
+                <Download size={14} /> Backup
+              </button>
+            </div>
+          </div>
+
+          {/* View Content */}
+          {view === 'all' && (
+            <VaultDashboard
+              items={items}
+              health={health}
+              compromised={compromised}
+              loading={message.startsWith('Synchronizing')}
+              onSelect={setSelected}
+              onNavigate={(next) => { setView(next); setSelected(null) }}
+              onToggleFavorite={(item) => void save({ ...item, favorite: !item.favorite, updatedAt: new Date().toISOString() })}
+            />
+          )}
+
+          {view === 'health' ? (
+            <section className="health-grid">
+              <article>
+                <span className="health-icon safe"><ShieldCheck size={18} /></span>
+                <b>{health.total - health.weak}</b>
+                <p>Strong login passwords</p>
+              </article>
+              <article>
+                <span className="health-icon warning"><KeyRound size={18} /></span>
+                <b>{health.weak}</b>
+                <p>Weak login passwords</p>
+              </article>
+              <article>
+                <span className="health-icon danger"><RefreshCw size={18} /></span>
+                <b>{health.reused}</b>
+                <p>Reused login passwords</p>
+              </article>
+              <article>
+                <span className="health-icon danger"><ShieldCheck size={18} /></span>
+                <b>{compromised ?? '-'}</b>
+                <p>Compromised logins</p>
+              </article>
+              
+              <div className="health-note">
+                <ShieldCheck size={20} />
+                <div>
+                  <b>Login health checks happen locally</b>
+                  <p>Passwords are analyzed in memory. Compromised checks are opt-in and send only k-anonymous hash prefixes.</p>
+                  <button className="secondary-button" disabled={checkingCompromised} onClick={() => void checkCompromisedPasswords()}>
+                    {checkingCompromised ? 'Checking anonymous ranges...' : 'Check compromised logins'}
+                  </button>
+                </div>
+              </div>
+            </section>
+          ) : (
+            <section id="complete-vault-list" className="vault-list production-list">
+              {filtered.length ? (
+                <>
+                  {filtered.map((item) => {
+                    const Icon = typeIcons[item.type]
+                    return (
+                      <button
+                        className={`production-row ${selected?.id === item.id ? 'selected' : ''}`}
+                        key={item.id}
+                        onClick={() => setSelected(item)}
+                      >
+                        <span className="site-avatar">
+                          <Icon size={16} />
+                        </span>
+                        <span className="entry-primary">
+                          <b>{item.name}</b>
+                          <small>{safeSubtitle(item)}</small>
+                        </span>
+                        <span className="item-tags">
+                          {[item.category, ...item.tags].slice(0, 2).map((tag) => (
+                            <i key={tag}>{tag}</i>
+                          ))}
+                        </span>
+                        <span className="item-type">{typeLabels[item.type]}</span>
+                        <Star
+                          className={item.favorite ? 'favorite-star' : ''}
+                          size={16}
+                          fill={item.favorite ? 'currentColor' : 'none'}
+                        />
+                        <MoreHorizontal size={16} className="row-more-icon" />
+                      </button>
+                    )
+                  })}
+                </>
+              ) : (
+                <div className="empty-state">
+                  <span><KeyRound size={26} /></span>
+                  <h2>No encrypted items found</h2>
+                  <p>Add a secure item to store logins, cards, or notes encrypted on your device.</p>
+                  <button className="primary-button" onClick={() => setEditing(null)}>
+                    <Plus size={15} /> Add first item
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
+
+          <footer className="vault-footer">
+            <span><ShieldCheck size={13} /> End-to-end encrypted</span>
+            <span>Server stores ciphertext only</span>
+          </footer>
+        </main>
+
+        {selected && (
+          <VaultItemDetails
+            item={selected}
+            attachmentsEnabled={attachmentsEnabled}
+            onClose={() => setSelected(null)}
+            onEdit={() => setEditing(selected)}
+            onDelete={() => void remove(selected)}
+            onAttach={() => attachmentInput.current?.click()}
+            onDownloadAttachment={(attachment) => void downloadEncryptedAttachment(attachment)}
+            onDeleteAttachment={(attachmentId) => void removeAttachment(selected, attachmentId)}
+            onRequireReauth={requireReauthentication}
+            onCopy={(value) => void copyValue(value)}
+          />
+        )}
+        
+        {attachmentsEnabled && (
+          <input
+            ref={attachmentInput}
+            className="visually-hidden"
+            type="file"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) void attachFile(file)
+            }}
+          />
+        )}
+      </div>
+
+      {editing !== undefined && (
+        <ItemEditor
+          {...(editing ? { existing: editing } : {})}
+          onSave={(item) => void save(item)}
+          onClose={() => setEditing(undefined)}
+        />
+      )}
+
+      {reauthRequest && (
+        <ReauthenticationDialog
+          reason={reauthRequest.reason}
+          onCancel={() => setReauthRequest(null)}
+          onConfirm={confirmReauthentication}
+        />
+      )}
+
+      {settings && (
+        <SettingsDialog
+          onClose={() => setSettings(false)}
+          onLock={onLock}
+          onPlaintextExport={exportPlaintext}
+          onDeleteAccount={deleteVaultAccount}
+          onReauthenticate={reauthenticateForSettings}
+        />
+      )}
     </div>
-    {editing !== undefined && <ItemEditor {...(editing ? { existing: editing } : {})} onSave={(item) => void save(item)} onClose={() => setEditing(undefined)} />}
-    {reauthRequest && <ReauthenticationDialog reason={reauthRequest.reason} onCancel={() => setReauthRequest(null)} onConfirm={confirmReauthentication} />}
-    {settings && <SettingsDialog onClose={() => setSettings(false)} onLock={onLock} onPlaintextExport={exportPlaintext} onDeleteAccount={deleteVaultAccount} onReauthenticate={reauthenticateForSettings} />}
-  </div>
+  )
 }
+

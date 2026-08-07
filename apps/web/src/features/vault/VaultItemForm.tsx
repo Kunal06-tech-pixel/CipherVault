@@ -53,7 +53,17 @@ export function VaultItemForm({ type, existing, name, setName, category, setCate
   return <form onSubmit={submit}>
     <div className="editor-type-row">
       <label><span className="field-label">{template.titleLabel}<em>Required</em></span><input value={name} onChange={(event) => setName(event.target.value)} placeholder={template.titlePlaceholder} required autoFocus /></label>
-      <label><span className="field-label">Category</span><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((value) => <option key={value}>{value}</option>)}</select></label>
+      <label>
+        <span className="field-label">Category</span>
+        <div className="custom-select-wrap">
+          <select value={category} onChange={(event) => setCategory(event.target.value)}>
+            {categories.map((value) => (
+              <option key={value}>{value}</option>
+            ))}
+          </select>
+          <span className="select-arrow" aria-hidden="true">▾</span>
+        </div>
+      </label>
     </div>
     <div className="editor-section"><h3>{template.label} details</h3><div className="editor-grid">
       {template.fields.map((field) => <DynamicFieldRenderer key={field.key} field={field} value={fields[field.key]} onChange={(value) => updateField(field.key, value)} />)}
