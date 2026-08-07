@@ -2,6 +2,9 @@ import { ArrowRight, CreditCard, FileText, KeyRound, Lock, RefreshCw, Search, Sh
 import { brand } from '@keywall/brand'
 import { SectionBadge } from './SectionBadge'
 import { PrimaryButton } from './PrimaryButton'
+import { FadeIn } from '../../lib/FadeIn'
+import { StaggerContainer, StaggerItem } from '../../lib/StaggerContainer'
+import { TextReveal } from '../../lib/TextReveal'
 
 export function HeroSection() {
   return (
@@ -9,26 +12,40 @@ export function HeroSection() {
       <div className="landing-container">
         {/* Hero Header */}
         <div className="kw-hero-header">
-          <SectionBadge>{brand.copy.betaLabel}</SectionBadge>
+          <FadeIn delay={0.05} distance={16}>
+            <SectionBadge>{brand.copy.betaLabel}</SectionBadge>
+          </FadeIn>
 
-          <h1 className="kw-hero-title">
-            Keys stay on your device.<br />
-            <span className="kw-gradient-text">Servers never see your secrets.</span>
-          </h1>
+          <TextReveal
+            as="h1"
+            className="kw-hero-title"
+            delay={0.15}
+            segments={[
+              'Keys stay on your device.',
+              <br key="br" />,
+              <span key="gradient" className="kw-gradient-text">Servers never see your secrets.</span>,
+            ]}
+          >
+            {''}
+          </TextReveal>
 
-          <p className="kw-hero-subtitle">
-            Keywall keeps encryption keys client-side.<br />
-            Servers only synchronize ciphertext.
-          </p>
+          <FadeIn delay={0.55} distance={18}>
+            <p className="kw-hero-subtitle">
+              Keywall keeps encryption keys client-side.<br />
+              Servers only synchronize ciphertext.
+            </p>
+          </FadeIn>
 
-          <div className="kw-hero-actions">
-            <PrimaryButton href="/app" icon={<ArrowRight size={16} />}>
-              {brand.copy.launchCta}
-            </PrimaryButton>
-            <PrimaryButton href="/app?mode=register" variant="secondary">
-              {brand.copy.createAccountCta}
-            </PrimaryButton>
-          </div>
+          <FadeIn delay={0.7} distance={14}>
+            <div className="kw-hero-actions">
+              <PrimaryButton href="/app" icon={<ArrowRight size={16} />}>
+                {brand.copy.launchCta}
+              </PrimaryButton>
+              <PrimaryButton href="/app?mode=register" variant="secondary">
+                {brand.copy.createAccountCta}
+              </PrimaryButton>
+            </div>
+          </FadeIn>
         </div>
 
         {/* Hero Showcase Composition */}
@@ -38,63 +55,67 @@ export function HeroSection() {
 
           <div className="kw-hero-showcase">
             {/* Left Column Floating Cards */}
-            <div className="kw-hero-side-col left">
+            <StaggerContainer staggerDelay={0.1} className="kw-hero-side-col left">
               {/* Card 1: Secure Password Vault */}
-              <div className="kw-hero-feature-card">
-                <div className="kw-card-header">
-                  <div className="kw-icon-box">
-                    <Lock size={18} />
+              <StaggerItem>
+                <div className="kw-hero-feature-card">
+                  <div className="kw-card-header">
+                    <div className="kw-icon-box">
+                      <Lock size={18} />
+                    </div>
+                    <div>
+                      <h3>Secure password vault</h3>
+                      <p>Store logins, API keys, and secrets with end-to-end encryption.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3>Secure password vault</h3>
-                    <p>Store logins, API keys, and secrets with end-to-end encryption.</p>
-                  </div>
-                </div>
 
-                <div className="kw-card-mockup-rows">
-                  <div className="kw-mockup-row">
-                    <div className="kw-row-icon github">GH</div>
-                    <div className="kw-row-info">
-                      <span className="name">GitHub</span>
-                      <span className="email">john.doe@example.com</span>
+                  <div className="kw-card-mockup-rows">
+                    <div className="kw-mockup-row">
+                      <div className="kw-row-icon github">GH</div>
+                      <div className="kw-row-info">
+                        <span className="name">GitHub</span>
+                        <span className="email">john.doe@example.com</span>
+                      </div>
+                      <div className="kw-row-mask">••••••••••••</div>
                     </div>
-                    <div className="kw-row-mask">••••••••••••</div>
-                  </div>
-                  <div className="kw-mockup-row">
-                    <div className="kw-row-icon notion">N</div>
-                    <div className="kw-row-info">
-                      <span className="name">Notion</span>
-                      <span className="email">john.doe@example.com</span>
+                    <div className="kw-mockup-row">
+                      <div className="kw-row-icon notion">N</div>
+                      <div className="kw-row-info">
+                        <span className="name">Notion</span>
+                        <span className="email">john.doe@example.com</span>
+                      </div>
+                      <div className="kw-row-mask">••••••••••••</div>
                     </div>
-                    <div className="kw-row-mask">••••••••••••</div>
                   </div>
                 </div>
-              </div>
+              </StaggerItem>
 
               {/* Card 2: Card PINs & Sensitive Data */}
-              <div className="kw-hero-feature-card">
-                <div className="kw-card-header">
-                  <div className="kw-icon-box">
-                    <CreditCard size={18} />
+              <StaggerItem>
+                <div className="kw-hero-feature-card">
+                  <div className="kw-card-header">
+                    <div className="kw-icon-box">
+                      <CreditCard size={18} />
+                    </div>
+                    <div>
+                      <h3>Card PINs & sensitive data</h3>
+                      <p>Keep card details and PINs protected with strong encryption.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3>Card PINs & sensitive data</h3>
-                    <p>Keep card details and PINs protected with strong encryption.</p>
-                  </div>
-                </div>
 
-                <div className="kw-card-visa-box">
-                  <div className="visa-details">
-                    <span className="card-num">Visa •••• 4242</span>
-                    <span className="pin">PIN ••••</span>
+                  <div className="kw-card-visa-box">
+                    <div className="visa-details">
+                      <span className="card-num">Visa •••• 4242</span>
+                      <span className="pin">PIN ••••</span>
+                    </div>
+                    <span className="visa-badge">VISA</span>
                   </div>
-                  <span className="visa-badge">VISA</span>
                 </div>
-              </div>
-            </div>
+              </StaggerItem>
+            </StaggerContainer>
 
             {/* Center Column: Phone Mockup */}
-            <div className="kw-hero-phone-col">
+            <FadeIn delay={0.4} distance={32} blur scale={0.97} className="kw-hero-phone-col">
               <div className="kw-phone-frame">
                 {/* Phone Notch / Status bar */}
                 <div className="kw-phone-status-bar">
@@ -183,70 +204,76 @@ export function HeroSection() {
                   <span className="nav-item">⚙️</span>
                 </div>
               </div>
-            </div>
+            </FadeIn>
 
             {/* Right Column Floating Cards */}
-            <div className="kw-hero-side-col right">
+            <StaggerContainer staggerDelay={0.1} className="kw-hero-side-col right">
               {/* Card 3: Encrypted Notes */}
-              <div className="kw-hero-feature-card">
-                <div className="kw-card-header">
-                  <div className="kw-icon-box">
-                    <FileText size={18} />
+              <StaggerItem>
+                <div className="kw-hero-feature-card">
+                  <div className="kw-card-header">
+                    <div className="kw-icon-box">
+                      <FileText size={18} />
+                    </div>
+                    <div>
+                      <h3>Encrypted notes</h3>
+                      <p>Write anything down. Only you can read it.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3>Encrypted notes</h3>
-                    <p>Write anything down. Only you can read it.</p>
-                  </div>
-                </div>
 
-                <div className="kw-card-recovery-box">
-                  <div className="code-text">
-                    <span>Backup recovery codes</span>
-                    <code>ed25519:7xK3...a9F2</code>
-                    <code>x25519:5mN8...b3Q1</code>
+                  <div className="kw-card-recovery-box">
+                    <div className="code-text">
+                      <span>Backup recovery codes</span>
+                      <code>ed25519:7xK3...a9F2</code>
+                      <code>x25519:5mN8...b3Q1</code>
+                    </div>
+                    <Lock size={16} className="lock-icon" />
                   </div>
-                  <Lock size={16} className="lock-icon" />
                 </div>
-              </div>
+              </StaggerItem>
 
               {/* Card 4: Zero-Knowledge Sync */}
-              <div className="kw-hero-feature-card">
-                <div className="kw-card-header">
-                  <div className="kw-icon-box">
-                    <RefreshCw size={18} />
+              <StaggerItem>
+                <div className="kw-hero-feature-card">
+                  <div className="kw-card-header">
+                    <div className="kw-icon-box">
+                      <RefreshCw size={18} />
+                    </div>
+                    <div>
+                      <h3>Zero-knowledge sync</h3>
+                      <p>Your data is encrypted on your device and synced as ciphertext across your devices.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3>Zero-knowledge sync</h3>
-                    <p>Your data is encrypted on your device and synced as ciphertext across your devices.</p>
-                  </div>
-                </div>
 
-                <div className="kw-sync-diagram">
-                  <Laptop size={18} />
-                  <span className="dash-line" />
-                  <Smartphone size={16} />
-                  <span className="dash-line" />
-                  <div className="sync-lock">
-                    <Lock size={12} />
+                  <div className="kw-sync-diagram">
+                    <Laptop size={18} />
+                    <span className="dash-line" />
+                    <Smartphone size={16} />
+                    <span className="dash-line" />
+                    <div className="sync-lock">
+                      <Lock size={12} />
+                    </div>
+                    <span className="dash-line" />
+                    <Tablet size={16} />
+                    <span className="dash-line" />
+                    <Monitor size={18} />
                   </div>
-                  <span className="dash-line" />
-                  <Tablet size={16} />
-                  <span className="dash-line" />
-                  <Monitor size={18} />
                 </div>
-              </div>
-            </div>
+              </StaggerItem>
+            </StaggerContainer>
           </div>
 
           {/* Bottom Security Chips Bar */}
-          <div className="kw-hero-chips-bar">
-            <KeyRound size={14} className="chip-icon" />
-            <span>Client-side encryption</span>
-            <span className="chip-dot">•</span>
-            <span>Zero-knowledge by design</span>
-            <span className="chip-dot">•</span>
-            <span>Private by default</span>
-          </div>
+          <FadeIn delay={0.9} distance={12}>
+            <div className="kw-hero-chips-bar">
+              <KeyRound size={14} className="chip-icon" />
+              <span>Client-side encryption</span>
+              <span className="chip-dot">•</span>
+              <span>Zero-knowledge by design</span>
+              <span className="chip-dot">•</span>
+              <span>Private by default</span>
+            </div>
+          </FadeIn>
         </div>
       </div>
     </section>

@@ -1,10 +1,11 @@
-import { Disc as Discord, Github, Monitor, Moon, Sparkles, Sun, Twitter } from 'lucide-react'
+import { Disc as Discord, Github, Moon, Sparkles, Sun, Twitter } from 'lucide-react'
 import { Logo } from '../../ui/Logo'
+import { FadeIn } from '../../lib/FadeIn'
 
 export function Footer() {
   return (
     <footer className="kw-footer">
-      <div className="landing-container kw-footer-inner">
+      <FadeIn distance={14} className="landing-container kw-footer-inner">
         {/* Logo */}
         <Logo light />
 
@@ -38,7 +39,7 @@ export function Footer() {
             <Sun size={18} />
           </span>
         </div>
-      </div>
+      </FadeIn>
     </footer>
   )
 }

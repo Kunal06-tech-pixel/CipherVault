@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Eye, EyeOff, KeyRound, ShieldCheck, User } from 'lucide-react'
 import { brand } from '@keywall/brand'
 import type { SyncMutation } from '@keywall/contracts'
@@ -132,7 +133,20 @@ export function AuthScreen({ initialMode = 'login', onUnlock }: { initialMode?: 
         <div className="input-wrap"><User size={18} /><input id="email" name="username" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="username" required /></div>
         <label className="field-label" htmlFor="master">Master password</label>
         <div className="input-wrap"><KeyRound size={18} /><input id="master" type={showPassword ? 'text' : 'password'} value={masterPassword} onChange={(event) => setMasterPassword(event.target.value)} placeholder="At least 12 characters" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} required /><button type="button" className="icon-button subtle" onClick={() => setShowPassword((value) => !value)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div>
-        {mode === 'register' && <><label className="field-label" htmlFor="confirm">Confirm master password</label><div className="input-wrap"><ShieldCheck size={18} /><input id="confirm" type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Repeat your master password" autoComplete="new-password" required />{confirmPassword && confirmPassword === masterPassword && <Check className="input-ok" size={17} />}</div></>}
+        <AnimatePresence>
+          {mode === 'register' && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <label className="field-label" htmlFor="confirm">Confirm master password</label>
+              <div className="input-wrap"><ShieldCheck size={18} /><input id="confirm" type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Repeat your master password" autoComplete="new-password" required />{confirmPassword && confirmPassword === masterPassword && <Check className="input-ok" size={17} />}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {verification && <p className="auth-success"><Check size={15} />{verification}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="primary-button full" disabled={busy || !email || masterPassword.length < 12 || (mode === 'register' && masterPassword !== confirmPassword)}>{busy ? 'Securing your session...' : mode === 'register' ? 'Create zero-knowledge account' : 'Unlock vault'}</button>

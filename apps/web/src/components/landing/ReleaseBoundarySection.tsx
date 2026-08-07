@@ -1,7 +1,11 @@
 import { useState } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { AppWindow, ChevronDown, Lock, Package, Shield, ShieldCheck, Target } from 'lucide-react'
 import { brand } from '@keywall/brand'
 import { SectionBadge } from './SectionBadge'
+import { FadeIn } from '../../lib/FadeIn'
+import { StaggerContainer, StaggerItem } from '../../lib/StaggerContainer'
+import { easeOut } from '../../lib/motion'
 
 const gates = [
   {
@@ -40,12 +44,13 @@ const gates = [
 
 export function ReleaseBoundarySection() {
   const [expandedGate, setExpandedGate] = useState<number | null>(null)
+  const prefersReducedMotion = useReducedMotion()
 
   return (
     <section id="beta" className="kw-section kw-release-section">
       <div className="landing-container kw-release-grid">
         {/* Left Side Content */}
-        <div className="kw-release-left">
+        <FadeIn direction="right" distance={30} className="kw-release-left">
           <SectionBadge>RELEASE BOUNDARY</SectionBadge>
           <h2 className="kw-release-title">
             Private beta.<br />
@@ -56,22 +61,26 @@ export function ReleaseBoundarySection() {
             Keywall can be run as a controlled beta after deployment secrets, TLS, backups, monitoring, and domains are configured. Public launch stays blocked until the remaining security gates close.
           </p>
 
-          <div className="kw-release-status-pills">
-            <div className="kw-status-pill green">
-              <Lock size={14} />
-              <span>Private beta enabled</span>
-              <span className="dot green" />
-            </div>
-            <div className="kw-status-pill red">
-              <Lock size={14} />
-              <span>Public launch blocked</span>
-              <span className="dot red" />
-            </div>
-          </div>
-        </div>
+          <StaggerContainer staggerDelay={0.1} className="kw-release-status-pills">
+            <StaggerItem>
+              <div className="kw-status-pill green">
+                <Lock size={14} />
+                <span>Private beta enabled</span>
+                <span className="dot green" />
+              </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="kw-status-pill red">
+                <Lock size={14} />
+                <span>Public launch blocked</span>
+                <span className="dot red" />
+              </div>
+            </StaggerItem>
+          </StaggerContainer>
+        </FadeIn>
 
         {/* Right Side Gate Card */}
-        <div className="kw-release-right">
+        <FadeIn delay={0.15} scale={0.97} className="kw-release-right">
           <div className="kw-gate-card">
             {/* Gate Card Header */}
             <div className="kw-gate-header">
@@ -115,11 +124,20 @@ export function ReleaseBoundarySection() {
                       </div>
                     </div>
 
-                    {isExpanded && (
-                      <div className="gate-expanded-details">
-                        <p>{gate.details}</p>
-                      </div>
-                    )}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          className="gate-expanded-details"
+                          initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: easeOut }}
+                          style={{ overflow: 'hidden' }}
+                        >
+                          <p>{gate.details}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )
               })}
@@ -131,7 +149,7 @@ export function ReleaseBoundarySection() {
               <span>Public launch remains blocked until all gates are closed.</span>
             </div>
           </div>
-        </div>
+        </FadeIn>
       </div>
     </section>
   )
